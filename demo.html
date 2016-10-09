@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>markdown测试</title>
+	<script type="text/javascript" src="src/markdown.js"></script>
+	<script type="text/javascript">
+	var $ = function(id){ return document.getElementById(id);}
+	</script>
+</head>
+<body>
+<textarea id="text" style="width: 500px;height: 170px; margin:20px 40px" onkeyup="(function(){$('mark').innerHTML = markdown($('text').value);})()"></textarea>
+<div id="mark" style="margin:20px 40px">
+</div>
+</body>
+</html>

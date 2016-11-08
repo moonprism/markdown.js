@@ -1,16 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>markdown测试</title>
-	<script type="text/javascript" src="src/markdown.js"></script>
-	<script type="text/javascript">
-	var $ = function(id){ return document.getElementById(id);}
-	</script>
+    <meta charset="utf-8">
+    <title>markdown - demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style type="text/css">
+        #text{ width: 500px;height: 170px; margin:20px 40px;padding: 3px; }
+        .in{ font-size: 12px;display: block;margin-left: 40px;padding: 2px 4px;border-left:2px solid #6C086C; }
+        #mark,#code{ margin: 20px 40px; }
+        @media screen and (max-width: 750px){
+            #text{ width: 99%;margin: 10px auto; }
+            .in,#mark,#code{ margin-left: 2px; }
+        }
+    </style>
+    <script type="text/javascript" src="markdown.js"></script>
+    <script type="text/javascript">
+        var $ = function(id){ return document.getElementById(id);}
+    </script>
 </head>
 <body>
-<textarea id="text" style="width: 500px;height: 170px; margin:20px 40px" onkeyup="(function(){$('mark').innerHTML = markdown($('text').value);})()"></textarea>
-<div id="mark" style="margin:20px 40px">
-</div>
+<textarea id="text" onkeyup="(function(){$('code').innerText = $('mark').innerHTML = markdown($('text').value);})()"></textarea>
+<span class="in">显示</span>
+<div id="mark"></div>
+<span class="in">生成代码</span>
+<div id="code"></div>
 </body>
 </html>

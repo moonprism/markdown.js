@@ -10,20 +10,27 @@ function markdown(input){
     // 通用的行内元素正则
     var line_reg = function(str){
         return str.replace(/(?:^|[^!])\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
-                    .replace(/\*\*([^\*]+?)\*\*/g, '<b>$1</b>')
-                    .replace(/\*([^\*]+?)\*/g, '<i>$1</i>')
-                    .replace(/`([^`]+)`/g, '<code>$1</code>');
+                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                    .replace(/\*(.+?)\*/g, '<i>$1</i>')
+                    .replace(/`(.+?)`/g, '<code>$1</code>')
+                    .replace(/~~(.+?)~~/g, '<s>$1</s>');
     };
+    var code_lan,
+        code_block_index = false;
     // 代码块格式化正则
     var code_reg = function(str){
-        // 可以在这写一套关于某种语言的正则，但一定要放在正则匹配注释之前
+        // 可以在这写一套关于某种语言的正则
+        switch(code_lan){
+            case 'c':
+            //...
+            break;
+        }
         return str.replace(/\t/g, '    ')
                   .replace(/(\/\/.+)/, '<span class="note">$1</span>');
     }
     if ( ( m = /^(\s*\n)/.exec(text) ) != null ) {
         re.lastIndex = m[0].length;
     }
-    var code_block_index = false;
     // 开始循环每个块
     while ( ( m = re.exec(text) ) !== null ) {
         var block = m[1].split("\n");
@@ -35,6 +42,7 @@ function markdown(input){
                 // 将该块也包含进代码块中
                 _html += '\n';
                 while( block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null) ){
+                    // 每行正则，还是拼成块再正则比较好？
                     _html += (code_reg(block[i])+'\n');
                     block[i] = '';
                     i++;
@@ -104,7 +112,8 @@ function markdown(input){
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
                 }
-                _html += '<div class="'+(pre[1]?pre[1]:'code')+'"><pre>';
+                code_lan = pre[1]?pre[1]:'code';
+                _html += '<div class="'+code_lan+'"><pre>';
                 block[i] = '';
                 // 将所有代码跳出这个块
                 while( block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null) ){

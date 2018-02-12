@@ -8,11 +8,13 @@
         #text{ width: 500px;height: 170px; margin:20px 40px;padding: 3px; }
         .in{ font-size: 12px;display: block;margin-left: 40px;padding: 2px 4px;border-left:2px solid #6C086C; }
         #mark,#code{ margin: 20px 40px; }
+        #code{ font: 14px Consolas, "Liberation Mono", Menlo, Courier, monospace; }
         @media screen and (max-width: 750px){
             #text{ width: 99%;margin: 10px auto; }
             .in,#mark,#code{ margin-left: 2px; }
         }
     </style>
+    <link rel="stylesheet" type="text/css" href="markdown.css">
     <script type="text/javascript" src="markdown.js"></script>
     <script type="text/javascript">
         var $ = function(id){ return document.getElementById(id);}
@@ -21,7 +23,7 @@
 <body>
 <textarea id="text" onkeyup="(function(){$('code').innerText = $('mark').innerHTML = markdown($('text').value);})()"></textarea>
 <span class="in">显示</span>
-<div id="mark"></div>
+<div id="mark" class="markdown"></div>
 <span class="in">生成代码</span>
 <div id="code"></div>
 </body>

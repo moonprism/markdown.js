@@ -1,0 +1,21 @@
+.markdown{margin-top:25px;font-size:14px}
+.markdown a{outline:0;color:#00a1d6;text-decoration:none;cursor:pointer}
+.markdown h1,.markdown h2,.markdown h3,.markdown h4{margin-top:15px;letter-spacing:2px;font-family:Monospace,SimSun;line-height:1.25}
+.markdown h1{margin-bottom:1pc;padding:10px 5px}
+.markdown h2{margin-bottom:15px;padding:10px 5px;border-bottom:1.5px solid #eee;font-size:17px}
+.markdown h3,.markdown h4{margin-bottom:11px;padding:8px 4px;border-bottom:1px solid #eee;font-size:1pc}
+.markdown h5{padding:5px 2px;color:#555;font-weight:400;font-size:9pt;font-family:Monospace}
+.markdown p{margin-bottom:14px;color:#233;letter-spacing:1px;line-height:1.8}
+.markdown ol,.markdown ul{margin-bottom:15px;font-size:14px}
+.markdown ol li,.markdown ul li{margin-bottom:10px;padding-left:3px;letter-spacing:1px}
+.markdown ul li{margin-left:14px;list-style-type:disc!important}
+.markdown ol li{margin-left:1pc;list-style-type:decimal!important}
+.markdown img{padding-top:4px;max-width:100%}
+.markdown blockquote{margin:10px;padding:5px 10px;border-left:5px solid #ccc;color:#666;word-wrap:break-word;letter-spacing:1px;line-height:20px}
+.markdown hr{margin-bottom:10px;height:.15em;border:0;background-color:#e7e7e7}
+.markdown br{margin-bottom:3px}
+.markdown ._c{margin:0 .2em;padding:.2em .3em;border-radius:2px;background-color:rgba(0,0,0,.03);font:14px Consolas,Liberation Mono,Menlo,Courier,monospace}
+.markdown ._c,.markdown pre{overflow:auto;word-wrap:break-word}
+.markdown pre{margin-bottom:1pc;padding:1pc;border-radius:3px;background-color:#f7f7f7;color:#333;line-height:1.45}
+.markdown pre code{font:14px Consolas,Liberation Mono,Menlo,Courier,monospace}
+.markdown .note{color:#969896}

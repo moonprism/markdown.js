@@ -16,7 +16,8 @@ function markdown(input){
                     .replace(/\\\*/g, '&copyi;')
                     .replace(/\\~/g, '&copyc;')
                     .replace(/\\\[/g, '&copye;')
-                    .replace(/(?:^|[^!])\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
+                    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="'+img_cdn+'$2" >')
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
                     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
                     .replace(/\*(.+?)\*/g, '<i>$1</i>')
                     .replace(/`(.+?)`/g, '<code class="_c">$1</code>')
@@ -132,7 +133,7 @@ function markdown(input){
             /* +表格 */
             // 单块
             if (block[i]!='') {              
-                to_str += (line_reg(block[i])).replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="'+img_cdn+'$2" >');
+                to_str += line_reg(block[i]);
             }            
         }
         if(to_str!='') {

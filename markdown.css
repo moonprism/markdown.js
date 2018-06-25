@@ -17,6 +17,6 @@
 .markdown br{margin-bottom:3px}
 .markdown ._c{overflow:auto;word-wrap:break-word;font:1em Consolas,"Liberation Mono",Menlo,Courier,"Microsoft Yahei Light",monospace;padding:.2em .3em;background-color:rgba(0,0,0,.03);border-radius:2px;margin:0 .2em}
 .markdown pre{overflow:auto;word-wrap:break-word;line-height:1.45;padding:16px;overflow:auto;background-color:#f7f7f7;border-radius:3px;color:#333;margin:15px 0 22px}
-.markdown pre code{font:15px Consolas,"Liberation Mono",Menlo,Courier,"Microsoft Yahei Light",monospace}
+.markdown pre code{font:15px Consolas,"Liberation Mono",Menlo,Courier,"Microsoft Yahei Light",monospace;background-color: transparent;}
 .markdown .note{font-size:14px;color:#969896}
 .markdown a {outline: 0;color: #00a1d6;text-decoration: none;cursor: pointer;}

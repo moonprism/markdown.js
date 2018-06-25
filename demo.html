@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style type="text/css">
         #text{ width: 600px;height: 200px; margin:30px 50px 20px;padding: 3px;border: 1px solid rgba(34,36,38,.3);border-radius: .285rem;}
-        .in{ font-size: 14px;display: block;margin-left: 50px;padding: 3px 8px;border-left:2px solid #6C086C;}
+        .in{ font-size: 14px;display: block;margin-left: 50px;padding: 2px 8px;border-left:2px solid #6C086C;}
         #mark,#code{ margin: 20px 50px; }
         #code{ font: 14px Consolas, "Liberation Mono", Menlo, Courier, monospace; }
         #mark{ width: 650px }
@@ -21,8 +21,14 @@
     <script src="markdown.js"></script>
     <script>
         var $ = function(id){ return document.getElementById(id);}
+        var pres = document.getElementsByTagName('pre')
         // $('code').innerText = 
-        function parse(){$('mark').innerHTML = markdown($('text').value);}
+        function parse(){
+            $('mark').innerHTML = markdown($('text').value)
+            for (var i = pres.length - 1; i >= 0; i--) {
+                hljs.highlightBlock(pres[i].getElementsByTagName('code')[0])
+            }
+        }
     </script>
 </head>
 <body>
@@ -58,9 +64,9 @@ func main() {
 <!-- <span class="in">生成代码</span>
 <div id="code"></div> -->
 </body>
+<script src="//cdn.bootcss.com/highlight.js/9.0.0/highlight.min.js"></script>
 <script>
     parse()
+    //hljs.initHighlightingOnLoad();
 </script>
-<script src="//cdn.bootcss.com/highlight.js/9.0.0/highlight.min.js"></script>
-<script >hljs.initHighlightingOnLoad();</script>
 </html>

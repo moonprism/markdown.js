@@ -5,26 +5,62 @@
     <title>markdown - demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style type="text/css">
-        #text{ width: 500px;height: 170px; margin:20px 40px;padding: 3px; }
-        .in{ font-size: 12px;display: block;margin-left: 40px;padding: 2px 4px;border-left:2px solid #6C086C; }
-        #mark,#code{ margin: 20px 40px; }
+        #text{ width: 600px;height: 200px; margin:30px 50px 20px;padding: 3px;border: 1px solid rgba(34,36,38,.3);border-radius: .285rem;}
+        .in{ font-size: 14px;display: block;margin-left: 50px;padding: 3px 8px;border-left:2px solid #6C086C;}
+        #mark,#code{ margin: 20px 50px; }
         #code{ font: 14px Consolas, "Liberation Mono", Menlo, Courier, monospace; }
+        #mark{ width: 650px }
         @media screen and (max-width: 750px){
             #text{ width: 99%;margin: 10px auto; }
             .in,#mark,#code{ margin-left: 2px; }
         }
+        ::-webkit-scrollbar { width: 0;height: 0; }
     </style>
     <link rel="stylesheet" type="text/css" href="markdown.css">
-    <script type="text/javascript" src="markdown.js"></script>
-    <script type="text/javascript">
+    <link href="//cdn.bootcss.com/highlight.js/9.0.0/styles/tomorrow.min.css" rel="stylesheet">
+    <script src="markdown.js"></script>
+    <script>
         var $ = function(id){ return document.getElementById(id);}
+        // $('code').innerText = 
+        function parse(){$('mark').innerHTML = markdown($('text').value);}
     </script>
 </head>
 <body>
-<textarea id="text" onkeyup="(function(){$('code').innerText = $('mark').innerHTML = markdown($('text').value);})()"></textarea>
+<textarea id="text" onkeyup="parse()">
+### 测试标题3
+#### 测试4
+---
+* 列表1
+* 列表2
+`code` **粗体** *斜体*
+
+![](http://7xk6io.com1.z0.glb.clouddn.com/blog/2017-8-1-Laravel-ES03.png) 
+
+[Blog](http://kicoe.com) 
+
+*[Note](http://kicoe.com/note)*
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+     fmt.Println("Hello World!")
+} 
+```
+
+> blockquote
+
+</textarea>
 <span class="in">显示</span>
 <div id="mark" class="markdown"></div>
-<span class="in">生成代码</span>
-<div id="code"></div>
+<!-- <span class="in">生成代码</span>
+<div id="code"></div> -->
 </body>
+<script>
+    parse()
+</script>
+<script src="//cdn.bootcss.com/highlight.js/9.0.0/highlight.min.js"></script>
+<script >hljs.initHighlightingOnLoad();</script>
 </html>

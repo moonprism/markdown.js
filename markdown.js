@@ -1,5 +1,5 @@
 /* markdown-js | github >> https://github.com/moonprism/markdown.js
- * 取消了注释现在连我自己都看不懂
+ * 明明这个项目才是我最喜欢的，那个shell脚本反而关注高呢
  */
 function markdown(input){
     var img_cdn = "";

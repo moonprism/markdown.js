@@ -1,5 +1,5 @@
 /* markdown-js | github >> https://github.com/moonprism/markdown.js
- * 明明这个项目才是我最喜欢的，那个shell脚本反而关注高呢
+ * 取消了注释现在连我自己都看不懂
  */
 function markdown(input){
     var img_cdn = "";
@@ -17,6 +17,7 @@ function markdown(input){
                     .replace(/\\~/g, '&copyc;')
                     .replace(/\\\[/g, '&copye;')
                     .replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="'+img_cdn+'$2" >')
+                    .replace(/\[(.*?)\]\((#.*?)\)/g, '<a href="$2">$1</a>')
                     .replace(/\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
                     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
                     .replace(/\*(.+?)\*/g, '<i>$1</i>')
@@ -67,7 +68,8 @@ function markdown(input){
                     to_str = "";
                 }
                 block[i] = '';
-                _html += '<h'+h[1].length+'>'+line_reg(h[2])+'</h'+h[1].length+'>';
+                var h_name = line_reg(h[2]);
+                _html += '<h'+h[1].length+' id="'+h_name+'">'+h_name+'</h'+h[1].length+'>';
             } else if ( ( hr = block[i].match( /^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/ ) ) !== null ) {
                 // 分隔
                 if (to_str!="") {

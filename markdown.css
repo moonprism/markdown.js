@@ -20,3 +20,32 @@
 .markdown pre code{font:15px Consolas,"Liberation Mono",Menlo,Courier,"Microsoft Yahei Light",monospace;background-color: transparent;}
 .markdown .note{font-size:14px;color:#969896}
 .markdown a {outline: 0;color: #00a1d6;text-decoration: none;cursor: pointer;}
+/* 
+    表格样式，用github默认的
+*/
+.markdown table {
+    display: block;
+    width: 100%;
+    overflow: auto;
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+  
+  .markdown table th {
+    font-weight: 600;
+  }
+  
+  .markdown table th,
+  .markdown table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+  }
+  
+  .markdown table tr {
+    background-color: #fff;
+    border-top: 1px solid #c6cbd1;
+  }
+  
+  .markdown table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+  }

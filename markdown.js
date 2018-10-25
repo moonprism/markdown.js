@@ -30,7 +30,7 @@ function markdown(input){
     };
     let code_lan,
         code_block_index = false;
-    // 代码块格式化
+    // code
     let code_reg = function(str){
         switch(code_lan){
             case 'c':
@@ -133,7 +133,6 @@ function markdown(input){
                 block[i] = '';
             } else if ( (pre = block[i].match(/^\|(.+?)\|$/)) !== null ) {
                 /* +表格 */
-                // 判断第二行
                 let table_align_text, table_align;
                 if ( block[i+1] && (table_align_text = block[i+1].match(/^\|([-:\|\s]+?)\|$/)) !== null ) {
                     // 判断对齐方向
@@ -160,7 +159,6 @@ function markdown(input){
                     // 解析表单内容
                     i++;
                     while( block[++i] && block[i] != '' ) {
-                        // 确认可以解析该行
                         if ((pre = block[i].match(/^\|(.+?)\|$/)) !== null) {
                             _html += '<tr>';
                             let ths = pre[1].split('|');

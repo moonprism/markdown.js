@@ -2,28 +2,26 @@
 
 a simple Markdown parser for JavaScript.
 
-## Syntax:
+## syntax
 
 * \`code\`
 * \*italicize text\*
 * \*\*bold text\*\*
-* \[link\]\(link address\)
-* \!\[alt text\]\(image\)
+* \[link text\]\(link address\)
+* \!\[alt text\]\(image src\)
 * \#\# heading
 * \* unordered list
 * 1\. ordered list
 * \escape
 * \> blockquotes
-
-code
+* code
 ```
 ​```php
 <?php
     echo "mdzz";
 ​```
 ```
-
-table
+* table
 ```
 | left align | right align | center |
 | :------| ------: | :------: |
@@ -35,8 +33,10 @@ table
 ## usage
 
 ```js
-html = markdown(markdown);
+html_str = markdown(markdown_str);
 ```
 
-[demo](http://md.moonprism.cc/)
+## demo
+
+[md.moonprism.cc](http://md.moonprism.cc/)
 

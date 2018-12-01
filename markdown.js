@@ -1,6 +1,6 @@
-/* markdown.js | github >> https://github.com/kicoer/markdown.js
- * 简单小巧
- */
+// -------------------------------------------
+//          MoonPrism - markdown.js
+// -------------------------------------------
 function markdown(input){
     let img_cdn = "";
     let text = input.replace(/(\r\n|\n|\r)/g, "\n")
@@ -10,7 +10,7 @@ function markdown(input){
                 .replace( /"/g, "&quot;" )
                 .replace( /'/g, "&#39;" );
     let re = /([\s\S]+?)($|\n\s*\n|$)+/g, m ,_html = "";
-    // 行级元素正则
+    // line element
     let line_reg = function(str){
         return str.replace(/\\`/g, '&copyk;')
                     .replace(/\\\*/g, '&copyi;')
@@ -37,19 +37,19 @@ function markdown(input){
             break;
         }
         return str.replace(/\t/g, '    ')
-                  .replace(/(\/\/.+)/, '<span class="note">$1</span>');
+                  .replace(/(\/\/.+)/, '<span class="comment">$1</span>');
     }
     if ( ( m = /^(\s*\n)/.exec(text) ) != null ) {
         re.lastIndex = m[0].length;
     }
-    // 块级元素正则
+    // block element
     while ( ( m = re.exec(text) ) !== null ) {
         let block = m[1].split("\n");
         let to_str = "";
         for (let i = 0; i <= block.length - 1; i++) {
             let h, hr, li, bq, pre;
             if( code_block_index ){
-                // 代码块标志检测
+                // check code index
                 _html += '\n';
                 while( block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null) ) {
                     _html += (code_reg(block[i])+'\n');
@@ -62,16 +62,15 @@ function markdown(input){
                 }
                 block[i] = '';
             } else if ( ( h = block[i].match( /^(#{1,6})\s*(.*?)\s*#*\s*(?:\n|$)/ ) ) !== null ) {
-                // 标题
+                // title
                 if (to_str!="") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
                 }
                 block[i] = '';
-                let h_name = line_reg(h[2]);
-                _html += '<h'+h[1].length+' id="'+h_name+'">'+h_name+'</h'+h[1].length+'>';
+                _html += '<h'+h[1].length+' id="'+h[2]+'">'+line_reg(h[2])+'</h'+h[1].length+'>';
             } else if ( ( hr = block[i].match( /^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/ ) ) !== null ) {
-                // 分隔
+                // break
                 if (to_str!="") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
@@ -79,7 +78,7 @@ function markdown(input){
                 _html += hr[2] == '*' ? '<br>' : '<hr>';
                 block[i] = '';
             } else if ( ( li = block[i].match( /^(\*|\d\.)\s(.*?)\s*(?:\n|$)/ )) !== null ) {
-                // 列表
+                // list
                 if (to_str!="") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
@@ -97,7 +96,7 @@ function markdown(input){
                 _html += block[i]+'</'+tag+'>';
                 block[i] = '';
             } else if ( (bq = block[i].match( /^&gt;\s(.*?)\s*(?:\n|$)/ )) !== null ) {
-                // 引用
+                // blockquote
                 if (to_str!="") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
@@ -113,7 +112,7 @@ function markdown(input){
                 _html += block[i]+'</blockquote>';
                 block[i] = '';
             } else if ( (pre = block[i].match( /^```(\S*)(?:\n|$)/ )) !== null ) {
-                // 代码
+                // code
                 if (to_str!="") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
@@ -132,10 +131,9 @@ function markdown(input){
                 }
                 block[i] = '';
             } else if ( (pre = block[i].match(/^\|(.+?)\|$/)) !== null ) {
-                /* +表格 */
+                // table
                 let table_align_text, table_align;
                 if ( block[i+1] && (table_align_text = block[i+1].match(/^\|([-:\|\s]+?)\|$/)) !== null ) {
-                    // 判断对齐方向
                     table_align = table_align_text[1].split('|');
                     for (let tai = 0; tai < table_align.length; tai++) {
                         let ta_text = table_align[tai].replace(/^\s+|\s+$/g,"");
@@ -149,14 +147,12 @@ function markdown(input){
                             table_align[tai] = '';
                         }
                     }
-                    // 解析表头
                     _html += '<table><tr>';
                     let ths = pre[1].split('|');
                     for (let thi = 0; thi < ths.length; thi++) {
                         _html += '<th '+table_align[thi]+'>'+ths[thi]+'</th>';
                     }
                     _html += '</tr>';
-                    // 解析表单内容
                     i++;
                     while( block[++i] && block[i] != '' ) {
                         if ((pre = block[i].match(/^\|(.+?)\|$/)) !== null) {
@@ -172,7 +168,7 @@ function markdown(input){
                     block[i] = '';
                 }
             }
-            // 单块
+            // block ++
             if (block[i]!='') {              
                 to_str += line_reg(block[i]);
             }            

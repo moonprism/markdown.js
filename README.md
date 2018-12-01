@@ -9,19 +9,24 @@ a simple Markdown parser for JavaScript.
 * \*\*bold text\*\*
 * \[link text\]\(link address\)
 * \!\[alt text\]\(image src\)
+* \*\*\* & \-\-\- break line
 * \#\# heading
 * \* unordered list
 * 1\. ordered list
 * \escape
 * \> blockquotes
 * code
+
 ```
 ​```php
 <?php
+    // comment
     echo "mdzz";
 ​```
 ```
+
 * table
+
 ```
 | left align | right align | center |
 | :------| ------: | :------: |
@@ -33,7 +38,7 @@ a simple Markdown parser for JavaScript.
 ## usage
 
 ```js
-html_str = markdown(markdown_str);
+$('md').innerHTML = markdown('# hello world');
 ```
 
 ## demo

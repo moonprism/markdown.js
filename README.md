@@ -1,37 +1,47 @@
 # markdown.js
 
-简单小巧的解析markdown语法的js工具
+a simple Markdown parser for JavaScript.
 
-支持语法：
+## syntax
 
-* \`代码\`
-* \*斜体\*
-* \*\*加粗\*\*
-* \[链接\]\(链接地址\)
-* \!\[说明\]\(图片地址\)
-* \#\# 标题
-* \* 无序列表
-* 1\. 有序列表
-* \转义
+* \`code\`
+* \*italicize text\*
+* \*\*bold text\*\*
+* \[link text\]\(link address\)
+* \!\[alt text\]\(image src\)
+* \*\*\* & \-\-\- break line
+* \#\# heading
+* \* unordered list
+* 1\. ordered list
+* \escape
+* \> blockquotes
+* code
 
 ```
-​```语言
-代码块
+​```php
+<?php
+    // comment
+    echo "mdzz";
 ​```
 ```
 
-配置：
+* table
 
-markdown.js第五行：
-```js
-var img_cdn = "";  // 写上自己的图床前缀
+```
+| left align | right align | center |
+| :------| ------: | :------: |
+| AND | 0 | 1 |
+| 0 | 0 | 0 |
+| 1 | 0 | 1 |
 ```
 
-使用：
+## usage
 
 ```js
-var HTML = markdown(markdown);
+$('md').innerHTML = markdown('# hello world');
 ```
 
-[demo](http://md.moonprism.cc/)
+## demo
+
+[md.moonprism.cc](http://md.moonprism.cc/)
 

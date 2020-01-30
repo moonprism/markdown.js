@@ -96,13 +96,14 @@ function markdown(input){
                 i--;
                 _html += block[i]+'</'+tag+'>';
                 block[i] = '';
-            } else if ( (bq = block[i].match( /^&gt;\s(.*?)\s*(?:\n|$)/ )) !== null ) {
+            } else if ( (bq = block[i].match( /^&gt;(?:\s|\[(\S+?)\])(.*?)\s*(?:\n|$)/ )) !== null ) {
                 // blockquote
-                if (to_str!="") {
+                if (to_str != "") {
                     _html += "<p>"+to_str+"</p>";
                     to_str = "";
                 }
-                _html += '<blockquote>'+line_reg(bq[1]);
+                _html += '<blockquote class="'+ (bq[1] === undefined ? 'default' : bq[1]) + '">';
+                _html += line_reg(bq[2]);
                 block[i] = '';
                 while( i<=block.length - 1 ){
                     _html += line_reg(block[i])+'<br>';

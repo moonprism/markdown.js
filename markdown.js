@@ -16,6 +16,7 @@ function markdown(input){
                     .replace(/\\\*/g, '&copyi;')
                     .replace(/\\~/g, '&copyc;')
                     .replace(/\\\[/g, '&copye;')
+                    .replace(/!\[(.*?)\]\((http.*?)\)/g, '<img alt="$1" src="$2" >')
                     .replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="'+img_cdn+'$2" >')
                     .replace(/\[(.*?)\]\((#.*?)\)/g, '<a href="$2">$1</a>')
                     .replace(/\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')

@@ -1,5 +1,7 @@
 # markdown.js
 
+[![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
+
 a simple Markdown parser for JavaScript.
 
 ## syntax
@@ -18,10 +20,12 @@ a simple Markdown parser for JavaScript.
 * code
 
 ```
-​```php
-<?php
-    // comment
-    echo "mdzz";
+​```go
+package main
+
+func main() {
+    println('mdzz')
+}
 ​```
 ```
 
@@ -35,13 +39,15 @@ a simple Markdown parser for JavaScript.
 | 1 | 0 | 1 |
 ```
 
+## install
+
+```shell
+$npm i moonprism-markdown
+```
+
 ## usage
 
 ```js
-$('md').innerHTML = markdown('# hello world');
+import markdown from 'moonprism-markdown'
+let html = markdown('# hello world');
 ```
-
-## demo
-
-[md.moonprism.cc](http://md.moonprism.cc/)
-

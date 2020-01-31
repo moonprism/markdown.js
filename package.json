@@ -1,0 +1,22 @@
+{
+  "name": "moonprism-markdown",
+  "version": "1.0.0",
+  "description": "a simple markdown parser",
+  "main": "markdown.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonprism/markdown.js.git"
+  },
+  "keywords": [
+    "markdown"
+  ],
+  "author": "moonprism",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/moonprism/markdown.js/issues"
+  },
+  "homepage": "https://github.com/moonprism/markdown.js#readme"
+}

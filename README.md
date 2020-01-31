@@ -16,7 +16,7 @@ a simple Markdown parser for JavaScript.
 * \* unordered list
 * 1\. ordered list
 * \escape
-* \> blockquotes
+* \>[success] blockquotes
 * code
 
 ```
@@ -48,6 +48,7 @@ $npm i moonprism-markdown
 ## usage
 
 ```js
-import markdown from 'moonprism-markdown'
-let html = markdown('# hello world');
+import Markdown from 'moonprism-markdown'
+Markdown.imageCDN = ''
+let html = Markdown.parse('# hello world');
 ```

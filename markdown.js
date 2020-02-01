@@ -122,7 +122,7 @@ typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles
                             to_str = "";
                         }
                         code_lan = pre[1] ? pre[1] : 'code';
-                        _html += '<pre><code class="' + code_lan + '">';
+                        _html += '<pre><code class="language-' + code_lan + '">';
                         block[i] = '';
                         while (block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
                             _html += (code_reg(block[i]) + '\n');

@@ -1,6 +1,6 @@
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles = factory());
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+        typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles = factory());
 })(this, function () {
     class Markdown {
         static parse(input) {
@@ -31,17 +31,7 @@ typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles
                     .replace(/&copyc;/g, '~')
                     .replace(/&copye;/g, '[');
             };
-            let code_lan,
-                code_block_index = false;
-            // code
-            let code_reg = function (str) {
-                switch (code_lan) {
-                    case 'c':
-                        break;
-                }
-                return str.replace(/\t/g, '    ')
-                    .replace(/(\/\/.+)/, '<span class="comment">$1</span>');
-            }
+            let code_block_index = false;
             if ((m = /^(\s*\n)/.exec(text)) != null) {
                 re.lastIndex = m[0].length;
             }
@@ -55,7 +45,7 @@ typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles
                         // check code index
                         _html += '\n';
                         while (block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += (code_reg(block[i]) + '\n');
+                            _html += block[i] + '\n';
                             block[i] = '';
                             i++;
                         }
@@ -121,11 +111,11 @@ typeof define === 'function' && define.amd ? define(factory) : (global.Qarticles
                             _html += "<p>" + to_str + "</p>";
                             to_str = "";
                         }
-                        code_lan = pre[1] ? pre[1] : 'code';
-                        _html += '<pre><code class="language-' + code_lan + '">';
+                        let code_class = pre[1] ? (' class="language-'+pre[1]+'"') : '';
+                        _html += '<pre><code' + code_class + '>';
                         block[i] = '';
                         while (block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += (code_reg(block[i]) + '\n');
+                            _html += block[i] + '\n';
                             block[i] = '';
                         }
                         if (block[i] === undefined) {

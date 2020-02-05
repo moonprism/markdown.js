@@ -61,7 +61,7 @@
                             to_str = "";
                         }
                         block[i] = '';
-                        _html += '<h' + h[1].length + ' id="' + h[2] + '">' + line_reg(h[2]) + '</h' + h[1].length + '>';
+                        _html += '<h' + h[1].length + '>' + line_reg(h[2]) + '</h' + h[1].length + '>';
                     } else if ((hr = block[i].match(/^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/)) !== null) {
                         // break
                         if (to_str != "") {

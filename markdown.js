@@ -6,11 +6,7 @@
         static parse(input) {
             let img_cdn = Markdown.imageCDN;
             let text = input.replace(/(\r\n|\n|\r)/g, "\n")
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
+                        .replace(/&/g, "&amp;");
             let re = /([\s\S]+?)($|\n\s*\n|$)+/g, m, _html = "";
             // line element
             let line_reg = function (str) {
@@ -24,7 +20,9 @@
                     .replace(/\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
                     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
                     .replace(/\*(.+?)\*/g, '<i>$1</i>')
-                    .replace(/`(.+?)`/g, '<code class="_c">$1</code>')
+                    .replace(/`(.+?)`/g, function(match, code) {
+                        return '<code class="_c">'+code_reg(code)+'</code>'
+                    })
                     .replace(/~~(.+?)~~/g, '<s>$1</s>')
                     .replace(/&copyk;/g, '`')
                     .replace(/&copyi;/g, '*')
@@ -32,6 +30,12 @@
                     .replace(/&copye;/g, '[');
             };
             let code_block_index = false;
+            let code_reg = function (str) {
+                return str.replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
             if ((m = /^(\s*\n)/.exec(text)) != null) {
                 re.lastIndex = m[0].length;
             }
@@ -45,7 +49,7 @@
                         // check code index
                         _html += '\n';
                         while (block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += block[i] + '\n';
+                            _html += (code_reg(block[i])+'\n');
                             block[i] = '';
                             i++;
                         }
@@ -88,7 +92,7 @@
                         i--;
                         _html += block[i] + '</' + tag + '>';
                         block[i] = '';
-                    } else if ((bq = block[i].match(/^&gt;(?:\s|\[(\S+?)\])(.*?)\s*(?:\n|$)/)) !== null) {
+                    } else if ((bq = block[i].match(/^>(?:\s|\[(\S+?)\])(.*?)\s*(?:\n|$)/)) !== null) {
                         // blockquote
                         if (to_str != "") {
                             _html += "<p>" + to_str + "</p>";
@@ -115,7 +119,7 @@
                         _html += '<pre><code' + code_class + '>';
                         block[i] = '';
                         while (block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += block[i] + '\n';
+                            _html += (code_reg(block[i])+'\n');
                             block[i] = '';
                         }
                         if (block[i] === undefined) {

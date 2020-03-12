@@ -47,9 +47,9 @@
                     let h, hr, li, bq, pre;
                     if (code_block_index) {
                         // check code index
-                        _html += '\n';
+                        _html += '\r\n';
                         while (block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += (code_reg(block[i])+'\n');
+                            _html += (code_reg(block[i])+'\r\n');
                             block[i] = '';
                             i++;
                         }
@@ -92,7 +92,7 @@
                         i--;
                         _html += block[i] + '</' + tag + '>';
                         block[i] = '';
-                    } else if ((bq = block[i].match(/^>(?:\s|\[(\S+?)\])(.*?)\s*(?:\n|$)/)) !== null) {
+                    } else if ((bq = block[i].match(/^>(?:\s|\[(\S+?)\]\s)(.*?)\s*(?:\n|$)/)) !== null) {
                         // blockquote
                         if (to_str != "") {
                             _html += "<p>" + to_str + "</p>";
@@ -101,10 +101,9 @@
                         _html += '<blockquote class="' + (bq[1] === undefined ? 'default' : bq[1]) + '">';
                         _html += line_reg(bq[2]);
                         block[i] = '';
-                        while (i <= block.length - 1) {
+                        for (; i <= block.length - 1; i++) {
                             _html += line_reg(block[i]) + '<br>';
                             block[i] = '';
-                            i++;
                         }
                         i--;
                         _html += block[i] + '</blockquote>';
@@ -119,7 +118,7 @@
                         _html += '<pre><code' + code_class + '>';
                         block[i] = '';
                         while (block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                            _html += (code_reg(block[i])+'\n');
+                            _html += (code_reg(block[i])+'\r\n');
                             block[i] = '';
                         }
                         if (block[i] === undefined) {

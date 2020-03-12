@@ -1,10 +1,10 @@
 {
   "name": "moonprism-markdown",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "a simple markdown parser",
   "main": "markdown.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/moonprism/markdown.js/issues"
   },
-  "homepage": "https://github.com/moonprism/markdown.js#readme"
+  "homepage": "https://github.com/moonprism/markdown.js#readme",
+  "devDependencies": {
+    "mocha": "^7.1.0"
+  }
 }

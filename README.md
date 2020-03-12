@@ -1,12 +1,16 @@
 # markdown.js
 
+![NPM](https://img.shields.io/npm/l/moonprism-markdown?style=flat-square)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)
+![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist/markdown.min.js?style=flat-square)
+
 [![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
 
 a simple markdown parser for JavaScript.
 
-[example](https://moonprism.github.io/markdown.js/)
+[**example**](https://moonprism.github.io/markdown.js/)
 
-## syntax
+## Syntax
 
 * \`code\`
 * \*italicize text\*
@@ -14,7 +18,7 @@ a simple markdown parser for JavaScript.
 * \[link text\]\(link address\)
 * \!\[alt text\]\(image src\)
 * \*\*\* & \-\-\- break line
-* \#\# heading
+* \#\# heading {#heading-id}
 * \* unordered list
 * 1\. ordered list
 * \escape
@@ -39,16 +43,18 @@ func main() {
 ```
 * html
 ```
-<img src="https://avatars0.githubusercontent.com/u/15173284?s=120&v=4" style="border-radius: 50%">
+<svg width="80" height="80">
+  <circle cx="40" cy="40" r="20" stroke="crimson" stroke-width="4" />
+</svg>
 ```
 
-## install
+## Install
 
 ```shell
 npm install moonprism-markdown --save
 ```
 
-## usage
+## Usage
 
 ```js
 import markdown from 'moonprism-markdown'

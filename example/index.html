@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>markdown - demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style type="text/css">
+        body {width: 750px; margin: 20px auto;}
+        h1 {text-align: center; font-weight: 300; }
+        #text{ width: 89%;height: 240px; margin:20px 40px;padding: 3px; font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size: 15px;}
+        .in{ font-size: 13px;display: block;margin-left: 41px;padding: 2px 5px; color: #fff; background-color: blueviolet; display:inline-block; }
+        #mark,#code{ margin: 20px 40px; font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;}
+        @media screen and (max-width: 750px){
+            body {width: 97% !important;}
+            #text{ width: 99%;margin: 10px auto; }
+            .in,#mark,#code{ margin-left: 2px; }
+        }
+    </style>
+    <script type="text/javascript" src="./markdown.min.js"></script>
+    <script type="text/javascript">
+        var $ = function(id){ return document.getElementById(id);}
+        function parse(){$('code').innerText = $('mark').innerHTML = markdown($('text').value);}
+    </script>
+</head>
+<body>
+    <h1>markdown.js</h1>
+    <textarea id="text"
+        onkeyup="parse()">[❤️Github](https://github.com/moonprism/markdown.js)
+
+## Install
+```
+npm install --save moonprism-markdown
+```
+
+## Usage
+```
+import markdown from 'moonprism-markdown'
+let html = markdown('# hello world')
+```</textarea>
+    <span class="in">显示</span>
+    <div id="mark" class="markdown-body"></div>
+    <span class="in">生成代码</span>
+    <div id="code"></div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css">
+</body>
+    <script>parse(); $('text').focus()</script>
+</html>

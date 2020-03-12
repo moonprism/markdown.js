@@ -52,14 +52,14 @@ function markdown(md, img_cdn = '') {
                     _html += '</code></pre>';
                 }
                 block[i] = '';
-            } else if ((h = block[i].match(/^(#{1,6})\s*(.*?)\s*#*\s*(?:\n|$)/)) !== null) {
+            } else if ((h = block[i].match(/^(#{1,6})\s*(.*?)\s*(?:\s*|{#(\S*)})(?:\n|$)/)) !== null) {
                 // title
                 if (to_str != "") {
                     _html += "<p>" + to_str + "</p>";
                     to_str = "";
                 }
                 block[i] = '';
-                _html += '<h' + h[1].length + '>' + line_reg(h[2]) + '</h' + h[1].length + '>';
+                _html += '<h' + h[1].length + (h[3] === undefined ? '' : ' id="'+h[3]+'"') + '>' + line_reg(h[2]) + '</h' + h[1].length + '>';
             } else if ((hr = block[i].match(/^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/)) !== null) {
                 // break
                 if (to_str != "") {

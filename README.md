@@ -2,7 +2,9 @@
 
 [![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
 
-a simple Markdown parser for JavaScript.
+a simple markdown parser for JavaScript.
+
+[example](https://moonprism.github.io/markdown.js/)
 
 ## syntax
 
@@ -17,8 +19,7 @@ a simple Markdown parser for JavaScript.
 * 1\. ordered list
 * \escape
 * \>[success] blockquotes
-* code
-
+* code block
 ```
 ​```go
 package main
@@ -28,9 +29,7 @@ func main() {
 }
 ​```
 ```
-
 * table
-
 ```
 | left align | right align | center |
 | :------| ------: | :------: |
@@ -38,17 +37,29 @@ func main() {
 | 0 | 0 | 0 |
 | 1 | 0 | 1 |
 ```
+* html
+```
+<img src="https://avatars0.githubusercontent.com/u/15173284?s=120&v=4" style="border-radius: 50%">
+```
 
 ## install
 
 ```shell
-$npm i moonprism-markdown
+npm install moonprism-markdown --save
 ```
 
 ## usage
 
 ```js
-import Markdown from 'moonprism-markdown'
-Markdown.imageCDN = ''
-let html = Markdown.parse('# hello world');
+import markdown from 'moonprism-markdown'
+let html = markdown('# hello world')
+```
+
+or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.min.js)
+
+```html
+<script type="text/javascript" src="./markdown.min.js"></script>
+<script type="text/javascript">
+    var html = markdown('# hello world')
+</script>
 ```

@@ -1,0 +1,20 @@
+
+# <emoji> <subject>
+# --------------------------
+# emoji
+#  :sparkles: 提交新功能
+#  :lipstick: UI，样式调整
+#  :bug: 修复了bug
+#  :lock: 修复安全问题
+#  :pencil: 只修改了文档
+#  :art: 调整代码格式
+#  :hammer: 代码重构，既没修复bug也没有添加新功能
+#  :fire: 移除代码或文件
+#  :zap: 性能优化，提高性能的代码更改
+#  :white_check_mark: 添加或修改代码测试
+#  :rocket: 部署功能
+#  :wrench: 修改配置文件
+#  :tada: 初始化
+# ---------------------------
+# subject
+#  提交的简短介绍，不超过50字

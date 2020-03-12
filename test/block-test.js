@@ -13,7 +13,7 @@ fs.readdir(blockDir, function(err, files) {
                 it(prefix, () => {
                     let text = fs.readFileSync(blockDir + prefix + ".md", "utf-8")
                     let html = fs.readFileSync(blockDir + prefix + ".html", "utf-8")
-                    assert.strictEqual(markdown(text), html)
+                    assert.strictEqual(markdown(text.replace(/\r?\n/g, "\n")), html.replace(/\r?\n/g, "\n"))
                 })
             })
         }

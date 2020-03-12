@@ -1,14 +1,14 @@
 # markdown.js
 
-![NPM](https://img.shields.io/npm/l/moonprism-markdown?style=flat-square)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)
-![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist/markdown.min.js?style=flat-square)
+[![NPM](https://img.shields.io/npm/l/moonprism-markdown?style=flat-square)](https://github.com/moonprism/markdown.js/blob/master/LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)](https://github.com/moonprism/markdown.js/actions?query=workflow%3Aci)
+[![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist/markdown.min.js?style=flat-square)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.min.js)
 
 [![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
 
 a simple markdown parser for JavaScript.
 
-[**example**](https://moonprism.github.io/markdown.js/)
+:sparkles: [example](https://moonprism.github.io/markdown.js/)
 
 ## Syntax
 

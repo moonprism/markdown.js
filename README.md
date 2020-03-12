@@ -8,7 +8,7 @@
 
 a simple markdown parser for JavaScript.
 
-[**✨example**](https://moonprism.github.io/markdown.js/)
+:sparkles: [example](https://moonprism.github.io/markdown.js/)
 
 ## Syntax
 

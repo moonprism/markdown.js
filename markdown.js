@@ -1,171 +1,186 @@
-function markdown(md, img_cdn = '') {
-    let text = md.replace(/(\r\n|\n|\r)/g, "\n")
-        .replace(/&/g, "&amp;");
-    let re = /([\s\S]+?)($|\n\s*\n|$)+/g, m, _html = "";
-    // line element
-    let line_reg = function (str) {
-        return str.replace(/\\`/g, '&copyk;')
-            .replace(/\\\*/g, '&copyi;')
-            .replace(/\\~/g, '&copyc;')
-            .replace(/\\\[/g, '&copye;')
-            .replace(/!\[(.*?)\]\((http.*?)\)/g, '<img alt="$1" src="$2" >')
-            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="' + img_cdn + '$2" >')
-            .replace(/\[(.*?)\]\((#.*?)\)/g, '<a href="$2">$1</a>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a target="_blank" href="$2">$1</a>')
-            .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-            .replace(/\*(.+?)\*/g, '<i>$1</i>')
-            .replace(/`(.+?)`/g, function (match, code) {
-                return '<code class="_c">' + code_reg(code) + '</code>'
+function markdown(src, img_cdn = '') {
+    let _text = src.replace(/(\r\n|\r)/g, "\n");
+    let _html = '';
+    let tokens = [];
+    let inline_parse = function (str) {
+        return str
+            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
+            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
+            .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a target="_blank" href="$3">$2</a>')
+            .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
+            .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
+            .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
+            .replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
+                return prefix + '<code>' + code_parse(code) + '</code>'
             })
-            .replace(/~~(.+?)~~/g, '<s>$1</s>')
-            .replace(/&copyk;/g, '`')
-            .replace(/&copyi;/g, '*')
-            .replace(/&copyc;/g, '~')
-            .replace(/&copye;/g, '[');
+            .replace(/\\([!\[\*\~`])/g, '$1')
     };
-    let code_block_index = false;
-    let code_reg = function (str) {
+    let code_parse = function (str) {
         return str.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
     }
-    if ((m = /^(\s*\n)/.exec(text)) != null) {
-        re.lastIndex = m[0].length;
-    }
-    // block element
-    while ((m = re.exec(text)) !== null) {
-        let block = m[1].split("\n");
-        let to_str = "";
-        for (let i = 0; i <= block.length - 1; i++) {
-            let h, hr, li, bq, pre;
-            if (code_block_index) {
-                // check code index
-                _html += '\n';
-                while (block[i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                    _html += (code_reg(block[i]) + '\n');
-                    block[i] = '';
-                    i++;
+    let h, br, li, code, blockquote, table, p, s, n;
+    while (_text) {
+        if (h = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|{#(\S*)})(?:\n+|$)/)) {
+            // heading
+            tokens.push({
+                type: 'h',
+                level: h[1].length,
+                attributes: h[3] === undefined ? '' : ' id="' + h[3] + '"',
+                text: h[2]
+            });
+            _text = _text.substring(h[0].length)
+        } else if (br = _text.match(/^([*-]){3}(?:\n+|$)/)) {
+            // break
+            tokens.push({
+                type: 'br',
+                tag: br[1] === '*' ? 'br' : 'hr',
+            });
+            _text = _text.substring(br[0].length);
+        } else if (li = _text.match(/^(\*|(\d)\.)\s([\s\S]*?)(?:\n{2,}|$)/)) {
+            // list
+            tokens.push({
+                type: 'li',
+                tag: li[1] === '*' ? 'ul' : 'ol',
+                text: li[0],
+            });
+            _text = _text.substring(li[0].length);
+        } else if (code = _text.match(/^```(\S*)\n([\s\S]+?)\n```(?:\n|$)/)) {
+            // code
+            tokens.push({
+                type: 'code',
+                lang: code[1],
+                text: code[2],
+                attributes: code[1] === '' ? '' : ' class="language-' + code[1] + '"'
+            });
+            _text = _text.substring(code[0].length);
+        } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
+            // blockquote
+            tokens.push({
+                type: 'blockquote',
+                attributes: blockquote[1] === undefined ? '' : ' class="' + blockquote[1] + '"',
+                text: blockquote[2]
+            })
+            _text = _text.substring(blockquote[0].length);
+        } else if (table = _text.match(/^\|(.+?)\|\n/)) {
+            // table
+            let align = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
+            _text = _text.substring(table[0].length);
+            if (align === null) {
+                tokens.push({
+                    type: 'p',
+                    text: table[0],
+                });
+                continue;
+            } else {
+                let node = {
+                    type: "table",
+                    header: table[1].split('|').map(function(item){return item.trim()}),
+                    align: [],
+                    cells: [],
                 }
-                if (block[i] !== undefined) {
-                    code_block_index = false;
-                    _html += '</code></pre>';
+                let table_align = align[1].split('|');
+                for (let tai = 0; tai < table_align.length; tai++) {
+                    let ta_text = table_align[tai].replace(/^\s+|\s+$/g, "");
+                    if (ta_text.substring(0, 1) == ':' && ta_text.substring(ta_text.length - 1) == ':') {
+                        node.align.push('center');
+                    } else if (ta_text.substring(0, 1) == ':') {
+                        node.align.push('left');
+                    } else if (ta_text.substring(ta_text.length - 1) == ':') {
+                        node.align.push('right');
+                    } else {
+                        node.align.push('');
+                    }
                 }
-                block[i] = '';
-            } else if ((h = block[i].match(/^(#{1,6})\s*(.*?)\s*(?:\s*|{#(\S*)})(?:\n|$)/)) !== null) {
-                // title
-                if (to_str != "") {
-                    _html += "<p>" + to_str + "</p>";
-                    to_str = "";
+                _text = _text.substring(align[0].length);
+                let table_cell;
+                while (table_cell = _text.match(/^\|(.+?)\|\n/)) {
+                    node.cells.push(table_cell[1].split('|').map(function(item){return item.trim()}));
+                    _text = _text.substring(table_cell[0].length);
                 }
-                block[i] = '';
-                _html += '<h' + h[1].length + (h[3] === undefined ? '' : ' id="'+h[3]+'"') + '>' + line_reg(h[2]) + '</h' + h[1].length + '>';
-            } else if ((hr = block[i].match(/^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/)) !== null) {
-                // break
-                if (to_str != "") {
-                    _html += "<p>" + to_str + "</p>";
-                    to_str = "";
-                }
-                _html += hr[2] == '*' ? '<br>' : '<hr>';
-                block[i] = '';
-            } else if ((li = block[i].match(/^(\*|\d\.)\s(.*?)\s*(?:\n|$)/)) !== null) {
-                // list
-                if (to_str != "") {
-                    _html += "<p>" + to_str + "</p>";
-                    to_str = "";
-                }
-                let tag = li[1] == '*' ? 'ul' : 'ol';
-                _html += '<' + tag + '><li>' + line_reg(li[2]) + '</li>';
-                block[i] = '';
-                let li_reg = new RegExp("^(" + (li[1] == '*' ? "\\*" : "\\d\\.") + ")\\s(.*?)\\s*(?:\\n|$)");
-                while ((li = li_reg.exec(block[++i])) !== null) {
-                    li[2] = line_reg(li[2]);
-                    _html += '<li>' + li[2] + '</li>';
-                    block[i] = '';
-                }
-                i--;
-                _html += block[i] + '</' + tag + '>';
-                block[i] = '';
-            } else if ((bq = block[i].match(/^>(?:\s|\[(\S+?)\]\s)(.*?)\s*(?:\n|$)/)) !== null) {
-                // blockquote
-                if (to_str != "") {
-                    _html += "<p>" + to_str + "</p>";
-                    to_str = "";
-                }
-                _html += '<blockquote class="' + (bq[1] === undefined ? 'default' : bq[1]) + '">';
-                _html += line_reg(bq[2]);
-                block[i] = '';
-                for (; i <= block.length - 1; i++) {
-                    _html += line_reg(block[i]) + '<br>';
-                    block[i] = '';
-                }
-                i--;
-                _html += block[i] + '</blockquote>';
-                block[i] = '';
-            } else if ((pre = block[i].match(/^```(\S*)(?:\n|$)/)) !== null) {
-                // code
-                if (to_str != "") {
-                    _html += "<p>" + to_str + "</p>";
-                    to_str = "";
-                }
-                let code_class = pre[1] ? (' class="language-' + pre[1] + '"') : '';
-                _html += '<pre><code' + code_class + '>';
-                block[i] = '';
-                while (block[++i] && (block[i].match(/^```(\s*)(?:\n|$)/) === null)) {
-                    _html += (code_reg(block[i]) + '\n');
-                    block[i] = '';
-                }
-                if (block[i] === undefined) {
-                    code_block_index = true;
+                tokens.push(node);
+            }
+        } else if (p = _text.match(/^.+/)) {
+            // paragraph
+            let token = {
+                type: 'p',
+                text: p[0]
+            }
+            let last_token = tokens.pop();
+            if (last_token) {
+                if (last_token.type === 'p') {
+                    last_token.text += ('\n' + token.text);
+                    tokens.push(last_token)
                 } else {
-                    _html += '</code></pre>';
+                    tokens.push(last_token, token)
                 }
-                block[i] = '';
-            } else if ((pre = block[i].match(/^\|(.+?)\|$/)) !== null) {
-                // table
-                let table_align_text, table_align;
-                if (block[i + 1] && (table_align_text = block[i + 1].match(/^\|([-:\|\s]+?)\|$/)) !== null) {
-                    table_align = table_align_text[1].split('|');
-                    for (let tai = 0; tai < table_align.length; tai++) {
-                        let ta_text = table_align[tai].replace(/^\s+|\s+$/g, "");
-                        if (ta_text.substring(0, 1) == ':' && ta_text.substring(ta_text.length - 1) == ':') {
-                            table_align[tai] = 'style="text-align: center;"';
-                        } else if (ta_text.substring(0, 1) == ':') {
-                            table_align[tai] = 'style="text-align: left;"';
-                        } else if (ta_text.substring(ta_text.length - 1) == ':') {
-                            table_align[tai] = 'style="text-align: right;"';
-                        } else {
-                            table_align[tai] = '';
-                        }
-                    }
-                    _html += '<table><tr>';
-                    let ths = pre[1].split('|');
-                    for (let thi = 0; thi < ths.length; thi++) {
-                        _html += '<th ' + table_align[thi] + '>' + ths[thi] + '</th>';
-                    }
-                    _html += '</tr>';
-                    i++;
-                    while (block[++i] && block[i] != '') {
-                        if ((pre = block[i].match(/^\|(.+?)\|$/)) !== null) {
-                            _html += '<tr>';
-                            let ths = pre[1].split('|');
-                            for (let thi = 0; thi < ths.length; thi++) {
-                                _html += '<td ' + table_align[thi] + '>' + ths[thi] + '</td>';
-                            }
-                            _html += '</tr>';
-                        }
-                    }
-                    _html += '</table>'
-                    block[i] = '';
-                }
+            } else {
+                tokens.push(token)
             }
-            // block ++
-            if (block[i] != '') {
-                to_str += line_reg(block[i]);
-            }
+            _text = _text.substring(p[0].length)
+        } else if (s = _text.match(/^\n{2,}/)) {
+            // space
+            tokens.push({
+                type: 's',
+            })
+            _text = _text.substring(s[0].length)
+        } else if (n = _text.match(/^\s+/)){
+            // none
+            _text = _text.substring(n[0].length)
+        } else {
+            // error
+            _text = '';
+            console.error('parse error: ', tokens.pop())
         }
-        if (to_str != '') {
-            _html += "<p>" + to_str + "</p>";
+        continue;
+    }
+    let token;
+    while (token = tokens.shift()) {
+        switch(token.type) {
+            case 'h':
+                _html += '<h' + token.level + token.attributes + '>' + inline_parse(token.text) + '</h' + token.level + '>';
+                break;
+            case 'br':
+                _html += '<' + token.tag + '>';
+                break;
+            case 'p':
+                _html += '<p>' + inline_parse(token.text) + '</p>';
+                break;
+            case 'li':
+                _html += '<' + token.tag + '>';
+                token.text.split('\n').forEach(function (item) {
+                    if (item !== '') {
+                        _html += '<li>' + item.replace(/^\s*(\*|(\d)\.)\s/, '') + '</li>'
+                    }
+                })
+                _html += '</' + token.tag + '>';
+                break;
+            case 'code':
+                _html += '<pre><code' + token.attributes + '>' + code_parse(token.text) + '</code></pre>';
+                break;
+            case 'blockquote':
+                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n/g, '<br>')) + '</blockquote>';
+                break;
+            case 'table':
+                let thead = '<thead><tr>';
+                for (let i=0; i<token.header.length; i++) {
+                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + token.header[i] + '</th>';
+                }
+                thead += '</tr></thead>';
+                let tbody = '<tbody>';
+                for (let i=0; i<token.cells.length; i++) {
+                    tbody += "<tr>";
+                    for (let j=0; j < token.cells[i].length; j++) {
+                        tbody += '<td' + (token.align[j] ? ' align="' + token.align[j] + '"' : '') + '>' + token.cells[i][j] + '</td>';
+                    }
+                    tbody += "</tr>";
+                }
+                tbody += '</tbody>';
+                _html += '<table>' + thead + tbody + '</table>';
+                break;
         }
     }
     return _html;

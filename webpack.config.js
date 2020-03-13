@@ -4,7 +4,6 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'markdown.min.js',
-        // 直接导出包名为 markdown
         library: 'markdown',
         publicPath: '/example/',
     },

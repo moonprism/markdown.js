@@ -4,7 +4,7 @@ import markdown from '../markdown';
 
 describe('code', () => {
     it('base', () => {
-        assert.strictEqual(markdown('`cc`'), '<p><code class="_c">cc</code></p>');
+        assert.strictEqual(markdown('`cc`'), '<p><code>cc</code></p>');
     });
 })
 
@@ -25,7 +25,7 @@ describe('link', () => {
         assert.strictEqual(markdown('[text](http://address)'), '<p><a target="_blank" href="http://address">text</a></p>');
     });
     it('> code', () => {
-        assert.strictEqual(markdown('[text `code`](address)'), '<p><a target="_blank" href="address">text <code class="_c">code</code></a></p>');
+        assert.strictEqual(markdown('[text `code`](address)'), '<p><a target="_blank" href="address">text <code>code</code></a></p>');
     });
 })
 

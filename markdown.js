@@ -97,7 +97,7 @@ function markdown(src, img_cdn = '') {
                 }
                 _text = _text.substring(align[0].length);
                 let table_cell;
-                while (table_cell = _text.match(/^\|(.+?)\|\n/)) {
+                while (table_cell = _text.match(/^\|(.+?)\|(?:\n|$)/)) {
                     node.cells.push(table_cell[1].split('|').map(function(item){return item.trim()}));
                     _text = _text.substring(table_cell[0].length);
                 }
@@ -153,7 +153,7 @@ function markdown(src, img_cdn = '') {
                 _html += '<' + token.tag + '>';
                 token.text.split('\n').forEach(function (item) {
                     if (item !== '') {
-                        _html += '<li>' + item.replace(/^\s*(\*|(\d)\.)\s/, '') + '</li>'
+                        _html += '<li>' + inline_parse(item.replace(/^\s*(\*|(\d)\.)\s/, '')) + '</li>'
                     }
                 })
                 _html += '</' + token.tag + '>';
@@ -167,14 +167,14 @@ function markdown(src, img_cdn = '') {
             case 'table':
                 let thead = '<thead><tr>';
                 for (let i=0; i<token.header.length; i++) {
-                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + token.header[i] + '</th>';
+                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + inline_parse(token.header[i]) + '</th>';
                 }
                 thead += '</tr></thead>';
                 let tbody = '<tbody>';
                 for (let i=0; i<token.cells.length; i++) {
                     tbody += "<tr>";
                     for (let j=0; j < token.cells[i].length; j++) {
-                        tbody += '<td' + (token.align[j] ? ' align="' + token.align[j] + '"' : '') + '>' + token.cells[i][j] + '</td>';
+                        tbody += '<td' + (token.align[j] ? ' align="' + token.align[j] + '"' : '') + '>' + inline_parse(token.cells[i][j]) + '</td>';
                     }
                     tbody += "</tr>";
                 }

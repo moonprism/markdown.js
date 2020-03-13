@@ -1,6 +1,5 @@
-# markdown.js
+# Markdown.js
 
-[![NPM](https://img.shields.io/npm/l/moonprism-markdown?style=flat-square)](https://github.com/moonprism/markdown.js/blob/master/LICENSE)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)](https://github.com/moonprism/markdown.js/actions?query=workflow%3Aci)
 [![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist/markdown.min.js?style=flat-square)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.min.js)
 
@@ -8,7 +7,7 @@
 
 a simple markdown parser for JavaScript.
 
-:sparkles: [example](https://moonprism.github.io/markdown.js/)
+* ⚡ [example](https://moonprism.github.io/markdown.js/)
 
 ## Syntax
 
@@ -24,7 +23,7 @@ a simple markdown parser for JavaScript.
 * \escape
 * \>[success] blockquotes
 * code block
-```
+```md
 ​```go
 package main
 
@@ -34,7 +33,7 @@ func main() {
 ​```
 ```
 * table
-```
+```md
 | left align | right align | center |
 | :------| ------: | :------: |
 | AND | 0 | 1 |
@@ -42,7 +41,7 @@ func main() {
 | 1 | 0 | 1 |
 ```
 * html
-```
+```html
 <svg width="80" height="80">
   <circle cx="40" cy="40" r="20" stroke="crimson" stroke-width="4" />
 </svg>

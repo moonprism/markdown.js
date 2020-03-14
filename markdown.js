@@ -152,7 +152,7 @@ function markdown(src, img_cdn = '') {
                 }
                 tokens.push(token);
             }
-        } else if (html = _text.match(/^<(\S+?)[\s|>][\s\S]?(?:<\/\S+>\s*|\n{2,}|$)/)) {
+        } else if (html = _text.match(/^<(\S+?)[\s|>][\s\S]*?(?:<\/\S+>\s*|\n{2,}|$)/)) {
             // html block
             tokens.push({
                 type: 'html',

@@ -3,8 +3,7 @@ function markdown(src, img_cdn = '') {
     let _html = '';
     let tokens = [];
     let inline_parse = function (str) {
-        return str
-            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
+        return str.replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
             .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a target="_blank" href="$3">$2</a>')
@@ -14,7 +13,7 @@ function markdown(src, img_cdn = '') {
             .replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
                 return prefix + '<code>' + code_parse(code) + '</code>'
             })
-            .replace(/\\([!\[\*\~`])/g, '$1')
+            .replace(/\\([!\[\*\~`#])/g, '$1');
     };
     let code_parse = function (str) {
         return str.replace(/</g, "&lt;")
@@ -32,7 +31,7 @@ function markdown(src, img_cdn = '') {
                 attributes: h[3] === undefined ? '' : ' id="' + h[3] + '"',
                 text: h[2]
             });
-            _text = _text.substring(h[0].length)
+            _text = _text.substring(h[0].length);
         } else if (br = _text.match(/^([*-]){3}(?:\n+|$)/)) {
             // break
             tokens.push({
@@ -42,11 +41,55 @@ function markdown(src, img_cdn = '') {
             _text = _text.substring(br[0].length);
         } else if (li = _text.match(/^(\*|(\d)\.)\s([\s\S]*?)(?:\n{2,}|$)/)) {
             // list
-            tokens.push({
+            let text = li[0].replace(/\t/g, '    ');
+            let item, list_item = [];
+            while (item = text.match(/^(\s*(\*|(\d)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|(\d)\.)\s*|\n|$)/)) {
+                list_item.push(item[1]);
+                text = text.substring(item[1].length);
+            }
+            let token = {
                 type: 'li',
                 tag: li[1] === '*' ? 'ul' : 'ol',
-                text: li[0],
-            });
+                list: [],
+            };
+            let list_level_stack = [];
+            for (let i=0; i<list_item.length; i++) {
+                let item = list_item[i].match(/^(\s*)(\*|(\d)\.)\s([\s\S]*?)$/);
+                let prefix_space_lv = item[1].length;
+                let tag = item[2] === '*' ? 'ul' : 'ol';
+                let prefix_tag = '';
+                if (list_level_stack.length === 0) {
+                    list_level_stack.push({
+                        lv: prefix_space_lv,
+                        tag
+                    })
+                    prefix_tag = '<li>';
+                } else {
+                    let last_level_info = list_level_stack[list_level_stack.length-1];
+                    if (prefix_space_lv > last_level_info.lv) {
+                        list_level_stack.push({
+                            lv: prefix_space_lv,
+                            tag
+                        });
+                        prefix_tag = '<' + tag + '><li>';
+                    } else if (prefix_space_lv < last_level_info.lv) {
+                        prefix_tag = '</li>';
+                        while(pop_info = list_level_stack.pop()) {
+                            if (pop_info.lv === prefix_space_lv) {
+                                list_level_stack.push(pop_info);
+                                break;
+                            }
+                            prefix_tag += '</' + pop_info.tag + '>';
+                        }
+                        prefix_tag += '</li><li>';
+                    } else {
+                        prefix_tag += '</li><li>';
+                    }
+                }
+                token.list.push(prefix_tag + inline_parse(item[4].trim()));
+            }
+            token.list.push('</li>');
+            tokens.push(token);
             _text = _text.substring(li[0].length);
         } else if (code = _text.match(/^```(\S*)\n([\s\S]+?)\n```(?:\n|$)/)) {
             // code
@@ -63,45 +106,47 @@ function markdown(src, img_cdn = '') {
                 type: 'blockquote',
                 attributes: blockquote[1] === undefined ? '' : ' class="' + blockquote[1] + '"',
                 text: blockquote[2]
-            })
+            });
             _text = _text.substring(blockquote[0].length);
         } else if (table = _text.match(/^\|(.+?)\|\n/)) {
             // table
-            let align = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
+            let ahead_align = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
             _text = _text.substring(table[0].length);
-            if (align === null) {
+            if (ahead_align === null) {
                 tokens.push({
                     type: 'p',
                     text: table[0],
                 });
                 continue;
             } else {
-                let node = {
+                let token = {
                     type: "table",
                     header: table[1].split('|').map(function(item){return item.trim()}),
                     align: [],
                     cells: [],
                 }
-                let table_align = align[1].split('|');
-                for (let tai = 0; tai < table_align.length; tai++) {
-                    let ta_text = table_align[tai].replace(/^\s+|\s+$/g, "");
-                    if (ta_text.substring(0, 1) == ':' && ta_text.substring(ta_text.length - 1) == ':') {
-                        node.align.push('center');
-                    } else if (ta_text.substring(0, 1) == ':') {
-                        node.align.push('left');
-                    } else if (ta_text.substring(ta_text.length - 1) == ':') {
-                        node.align.push('right');
+                let align_slice = ahead_align[1].split('|');
+                for (let i = 0; i < align_slice.length; i++) {
+                    let align_text = align_slice[i].trim();
+                    let align_left_char = align_text.substring(0, 1);
+                    let align_right_char = align_text.substring(align_text.length - 1);
+                    if (align_left_char == ':' && align_right_char == ':') {
+                        token.align.push('center');
+                    } else if (align_left_char == ':') {
+                        token.align.push('left');
+                    } else if (align_right_char == ':') {
+                        token.align.push('right');
                     } else {
-                        node.align.push('');
+                        token.align.push('');
                     }
                 }
-                _text = _text.substring(align[0].length);
+                _text = _text.substring(ahead_align[0].length);
                 let table_cell;
                 while (table_cell = _text.match(/^\|(.+?)\|(?:\n|$)/)) {
-                    node.cells.push(table_cell[1].split('|').map(function(item){return item.trim()}));
+                    token.cells.push(table_cell[1].split('|').map(function(item){return item.trim()}));
                     _text = _text.substring(table_cell[0].length);
                 }
-                tokens.push(node);
+                tokens.push(token);
             }
         } else if (p = _text.match(/^.+/)) {
             // paragraph
@@ -130,10 +175,6 @@ function markdown(src, img_cdn = '') {
         } else if (n = _text.match(/^\s+/)){
             // none
             _text = _text.substring(n[0].length)
-        } else {
-            // error
-            _text = '';
-            console.error('parse error: ', tokens.pop())
         }
         continue;
     }
@@ -150,13 +191,7 @@ function markdown(src, img_cdn = '') {
                 _html += '<p>' + inline_parse(token.text) + '</p>';
                 break;
             case 'li':
-                _html += '<' + token.tag + '>';
-                token.text.split('\n').forEach(function (item) {
-                    if (item !== '') {
-                        _html += '<li>' + inline_parse(item.replace(/^\s*(\*|(\d)\.)\s/, '')) + '</li>'
-                    }
-                })
-                _html += '</' + token.tag + '>';
+                _html += '<' + token.tag + '>' + token.list.join('') + '</' + token.tag + '>';
                 break;
             case 'code':
                 _html += '<pre><code' + token.attributes + '>' + code_parse(token.text) + '</code></pre>';

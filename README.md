@@ -11,18 +11,35 @@ a simple markdown parser for JavaScript.
 
 ## Syntax
 
-* \`code\`
-* \*italicize text\*
-* \*\*bold text\*\*
-* \[link text\]\(link address\)
-* \!\[alt text\]\(image src\)
-* \*\*\* & \-\-\- break line
-* \#\# heading {#heading-id}
-* \* unordered list
-* 1\. ordered list
-* \escape
-* \>[success] blockquotes
-* code block
+* \`inline code\`
+* \*italicize\*
+* \*\*bold\*\*
+* \[link text]\(link address)
+* \!\[alt text]\(image src)
+* \*\*\* or ---
+* \## heading {#heading-id}
+* \ escape inline
+* list
+
+```md
+1. Step 1
+    * Item a
+    * Item b
+        1. b1
+    * Item c
+2. Step 2
+    1. firse
+```
+* blockquotes
+
+```md
+> blockquote
+next line
+
+>[success] blockquote
+```
+* code
+
 ```md
 ​```go
 package main
@@ -33,6 +50,7 @@ func main() {
 ​```
 ```
 * table
+
 ```md
 | left align | right align | center |
 | :------| ------: | :------: |
@@ -41,9 +59,10 @@ func main() {
 | 1 | 0 | 1 |
 ```
 * html
+
 ```html
-<svg width="80" height="80">
-  <circle cx="40" cy="40" r="20" stroke="crimson" stroke-width="4" />
+<svg width="99" height="99">
+  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="2" fill="#d89cf6"/>
 </svg>
 ```
 

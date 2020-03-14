@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style type="text/css">
         body {width: 750px; margin: 20px auto;}
-        .head-md {text-align: center; font-weight: 300; padding:0; margin: 50px 0 15px; }
-        #text{ width: 89%;height: 240px; margin:20px 40px;padding: 3px; font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size: 15px;}
+        .head-md {text-align: center; font-weight: 300; padding:0; margin: 44px 0 15px; }
+        #text{ tab-size: 4;width: 89%;height: 240px; margin:20px 40px;padding: 5px; font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size: 15px;}
         .in{ font-size: 13px;display: block;margin-left: 41px;padding: 2px 5px; color: #fff; background-color: blueviolet; display:inline-block; }
         #mark,#code{ margin: 20px 40px; font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;}
         @media screen and (max-width: 750px){
@@ -25,7 +25,7 @@
 <body>
     <h1 class="head-md">markdown.js</h1>
     <textarea id="text"
-        onkeyup="parse()">[❤️Github](https://github.com/moonprism/markdown.js)
+        onkeyup="parse()">[github](https://github.com/moonprism/markdown.js)
 
 ## Install
 ```
@@ -36,12 +36,30 @@ npm install --save moonprism-markdown
 ```
 import markdown from 'moonprism-markdown'
 let html = markdown('# hello world')
-```</textarea>
+```
+> [🍥blog](https://www.kicoe.com/article/id/23)</textarea>
     <span class="in">显示</span>
     <div id="mark" class="markdown-body"></div>
     <span class="in">生成代码</span>
     <div id="code"></div>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css">
 </body>
-    <script>parse(); $('text').focus()</script>
+    <script>
+        parse();
+        $('text').focus(),
+        document.querySelector("textarea").addEventListener('keydown', function (e) {
+            if (e.keyCode === 9) {
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var target = e.target;
+                var value = target.value;
+                target.value = value.substring(0, start)
+                    + "\t"
+                    + value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+                e.preventDefault();
+            }
+        }, false);
+</script>
+
 </html>

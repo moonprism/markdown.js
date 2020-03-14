@@ -1,7 +1,6 @@
-# Markdown.js
+# markdown.js
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)](https://github.com/moonprism/markdown.js/actions?query=workflow%3Aci)
-[![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist/markdown.min.js?style=flat-square)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.min.js)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)](https://github.com/moonprism/markdown.js/actions?query=workflow%3Aci) [![GitHub file gzip size in bytes](http://img.badgesize.io/moonprism/markdown.js/master/dist/markdown.min.js?compression=gzip&style=flat-square&color=blue)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.min.js)
 
 [![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
 
@@ -9,15 +8,16 @@ a simple markdown parser for JavaScript.
 
 * ⚡ [example](https://moonprism.github.io/markdown.js/)
 
-## Syntax
+## syntax
 
-* \`inline code\`
-* \*italicize\*
-* \*\*bold\*\*
-* \[link text]\(link address)
-* \!\[alt text]\(image src)
+* \``inline code`\`
+* \**italicize*\*
+* \*\***bold**\*\*
+* \[link text](address)
+* \!\[image alt text](src)
 * \*\*\* or ---
 * \## heading {#heading-id}
+* \~\~~~strikethrough~~\~\~
 * \ escape inline
 * list
 
@@ -40,15 +40,16 @@ next line
 ```
 * code
 
-```md
-​```go
+\```go
+```go
 package main
 
 func main() {
     println('mdzz')
 }
-​```
 ```
+\```
+
 * table
 
 ```md
@@ -66,13 +67,13 @@ func main() {
 </svg>
 ```
 
-## Install
+## install
 
 ```shell
 npm install moonprism-markdown --save
 ```
 
-## Usage
+## usage
 
 ```js
 import markdown from 'moonprism-markdown'

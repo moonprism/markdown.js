@@ -28,7 +28,7 @@ a simple markdown parser for JavaScript.
         1. b1
     * Item c
 2. Step 2
-    1. firse
+    1. first
 ```
 * blockquotes
 

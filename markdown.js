@@ -23,113 +23,135 @@ function markdown(src, img_cdn = '') {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
     }
-    let h, br, li, code, blockquote, table, p, s, n, html;
+    // lexing
+    let token;
+    let heading, br, li, code, blockquote, table, paragraph, space, none, html;
     while (_text) {
-        if (h = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|{#(\S*)})(?:\n+|$)/)) {
-            // heading
+        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|{#(\S*)})(?:\n+|$)/)) {
+            // heading lexing #{1,6}
             tokens.push({
-                type: 'h',
-                level: h[1].length,
-                attributes: h[3] === undefined ? '' : ' id="' + h[3] + '"',
-                text: h[2]
+                type: 'heading',
+                level: heading[1].length,
+                id: heading[3],
+                text: heading[2]
             });
-            _text = _text.substring(h[0].length);
+            _text = _text.substring(heading[0].length);
         } else if (br = _text.match(/^([*-]){3}(?:\n+|$)/)) {
-            // break
+            // break lexing ***, ---
             tokens.push({
                 type: 'br',
                 tag: br[1] === '*' ? 'br' : 'hr',
             });
             _text = _text.substring(br[0].length);
-        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:\n{2,}|$)/)) {
-            // list
+        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
+            // list lexing * , - , 1. ,
             let list_text = li[0].replace(/\t/g, '    ');
-            let item, list_item = [];
-            while (item = list_text.match(/^(\s*(\*|\-|(\d)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d)\.)\s*|\n|$)/)) {
-                list_item.push(item[1]);
-                list_text = list_text.substring(item[1].length);
-            }
-            let token = {
-                type: 'li',
+            token = {
+                type: 'list',
                 list: [],
             };
-            let list_level_stack = [], pop_info;
-            for (let i=0; i<list_item.length; i++) {
-                let item = list_item[i].match(/^(\s*)(\*|\-|(\d)\.)\s([\s\S]*?)$/);
-                let prefix_space_lv = item[1].length;
+            let items = [];
+            let item_match_result;
+            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d)\.)\s*|\n|$)/)) {
+                items.push(item_match_result[1]);
+                list_text = list_text.substring(item_match_result[1].length);
+            }
+            let lv_info_stack = []; 
+            let pop_info;
+            for (let i=0; i<items.length; i++) {
+                let item = items[i].match(/^(\s*)(\*|\-|(\d)\.)\s([\s\S]*?)$/);
+                let level = item[1].length;
                 let tag = (item[2] === '*' || item[2] === '-') ? 'ul' : 'ol';
-                let prefix_tag = '';
-                if (list_level_stack.length === 0) {
-                    list_level_stack.push({
-                        lv: prefix_space_lv,
+                if (lv_info_stack.length === 0) {
+                    lv_info_stack.push({
+                        lv: level,
                         tag
-                    })
-                    prefix_tag = '<' + tag + '><li>';
+                    });
+                    token.list.push(
+                        {type: 'list-open', tag},
+                        {type: 'item-open'}
+                    );
                 } else {
-                    let last_level_info = list_level_stack[list_level_stack.length-1];
-                    if (prefix_space_lv > last_level_info.lv) {
-                        list_level_stack.push({
-                            lv: prefix_space_lv,
+                    let last_level_info = lv_info_stack[lv_info_stack.length-1];
+                    if (level > last_level_info.lv) {
+                        lv_info_stack.push({
+                            lv: level,
                             tag
                         });
-                        prefix_tag = '<' + tag + '><li>';
-                    } else if (prefix_space_lv < last_level_info.lv) {
-                        prefix_tag = '';
-                        while(pop_info = list_level_stack.pop()) {
-                            if (pop_info.lv === prefix_space_lv) {
-                                list_level_stack.push(pop_info);
+                        token.list.push(
+                            {type: 'list-open', tag},
+                            {type: 'item-open'}
+                        );
+                    } else if (level < last_level_info.lv) {
+                        while(pop_info = lv_info_stack.pop()) {
+                            if (pop_info.lv === level) {
+                                lv_info_stack.push(pop_info);
                                 break;
                             }
-                            prefix_tag += '</li></' + pop_info.tag + '>';
+                            token.list.push(
+                                {type: 'item-close'},
+                                {type: 'list-close', tag: pop_info.tag},
+                            );
                         }
-                        prefix_tag += '</li><li>';
+                        token.list.push(
+                            {type: 'item-close'},
+                            {type: 'item-open'}
+                        );
                     } else {
-                        prefix_tag += '</li><li>';
+                        token.list.push(
+                            {type: 'item-close'},
+                            {type: 'item-open'}
+                        );
                     }
                 }
-                token.list.push(prefix_tag + inline_parse(item[4].trim()));
+                token.list.push(
+                    {type: 'item', text: item[4].trim()}
+                );
             }
-            // pop all parse stack
-            while (pop_info = list_level_stack.pop()) {
-                token.list.push('</li></' + pop_info.tag + '>');
+            // pop all lv_info from stack
+            while (pop_info = lv_info_stack.pop()) {
+                token.list.push(
+                    {type: 'item-close'},
+                    {type: 'list-close', tag: pop_info.tag}
+                )
             }
             tokens.push(token);
             _text = _text.substring(li[0].length);
-        } else if (code = _text.match(/^```(\S*)\n*([\s\S]+?)```/)) {
-            // code
+        } else if (code = _text.match(/^```(?:(\S+)|)\n([\s\S]*?)\n```/)) {
+            // code lexing ``` ```
             tokens.push({
                 type: 'code',
                 lang: code[1],
-                text: code[2],
-                attributes: code[1] === '' ? '' : ' class="language-' + code[1] + '"'
+                text: code[2]
             });
             _text = _text.substring(code[0].length);
         } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
-            // blockquote
+            // blockquote lexing >
             tokens.push({
                 type: 'blockquote',
-                attributes: blockquote[1] === undefined ? '' : ' class="' + blockquote[1] + '"',
+                class: blockquote[1],
                 text: blockquote[2]
             });
             _text = _text.substring(blockquote[0].length);
         } else if (table = _text.match(/^\|(.+?)\|\n/)) {
-            // table
-            let ahead_align = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
+            // table lexing | | |
+            let ahead_table = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
             _text = _text.substring(table[0].length);
-            if (ahead_align === null) {
+            if (ahead_table === null) {
                 tokens.push({
                     type: 'p',
                     text: table[0],
                 });
                 continue;
             } else {
-                let token = {
+                token = {
                     type: "table",
                     header: table[1].split('|').map(function(item){return item.trim()}),
                     align: [],
                     cells: [],
                 }
-                let align_slice = ahead_align[1].split('|');
+                // lexing align
+                let align_slice = ahead_table[1].split('|');
                 for (let i = 0; i < align_slice.length; i++) {
                     let align_text = align_slice[i].trim();
                     let align_left_char = align_text.substring(0, 1);
@@ -144,32 +166,32 @@ function markdown(src, img_cdn = '') {
                         token.align.push('');
                     }
                 }
-                _text = _text.substring(ahead_align[0].length);
-                let table_cell;
-                while (table_cell = _text.match(/^\|(.+?)\|(?:\n|$)/)) {
-                    token.cells.push(table_cell[1].split('|').map(function(item){return item.trim()}));
-                    _text = _text.substring(table_cell[0].length);
+                _text = _text.substring(ahead_table[0].length);
+                // lexing cell
+                while (ahead_table = _text.match(/^\|(.+?)\|(?:\n|$)/)) {
+                    token.cells.push(ahead_table[1].split('|').map(function(item){return item.trim()}));
+                    _text = _text.substring(ahead_table[0].length);
                 }
                 tokens.push(token);
             }
         } else if (html = _text.match(/^<(\S+?)[\s|>][\s\S]*?(?:<\/\S+>\s*|\n{2,}|$)/)) {
-            // html block
+            // html block lexing <></>
             tokens.push({
                 type: 'html',
                 html: html[0],
                 tag: html[1]
             })
             _text = _text.substring(html[0].length);
-        } else if (p = _text.match(/^.+/)) {
-            // paragraph
-            let token = {
-                type: 'p',
-                text: p[0]
+        } else if (paragraph = _text.match(/^.+/)) {
+            // paragraph lexing
+            token = {
+                type: 'paragraph',
+                text: paragraph[0]
             }
             let last_token = tokens.pop();
             if (last_token) {
-                if (last_token.type === 'p') {
-                    last_token.text += ('<br>' + token.text);
+                if (last_token.type === token.type) {
+                    last_token.text += '\n' + token.text;
                     tokens.push(last_token)
                 } else {
                     tokens.push(last_token, token)
@@ -177,38 +199,59 @@ function markdown(src, img_cdn = '') {
             } else {
                 tokens.push(token)
             }
-            _text = _text.substring(p[0].length)
-        } else if (s = _text.match(/^\n{2,}/)) {
-            // space
+            _text = _text.substring(paragraph[0].length)
+        } else if (space = _text.match(/^\n{2,}/)) {
+            // space lexing
             tokens.push({
-                type: 's',
+                type: 'space',
             })
-            _text = _text.substring(s[0].length)
-        } else if (n = _text.match(/^\s+/)){
+            _text = _text.substring(space[0].length)
+        } else if (none = _text.match(/^\s+/)){
             // none
-            _text = _text.substring(n[0].length)
+            _text = _text.substring(none[0].length)
         }
         continue;
     }
-    let token;
+    // parse
     while (token = tokens.shift()) {
         switch(token.type) {
-            case 'h':
+            case 'heading':
+                token.attributes = token.id === undefined ? '' : ' id="' + token.id + '"';
                 _html += '<h' + token.level + token.attributes + '>' + inline_parse(token.text) + '</h' + token.level + '>';
                 break;
             case 'br':
                 _html += '<' + token.tag + '>';
                 break;
-            case 'p':
-                _html += '<p>' + inline_parse(token.text) + '</p>';
+            case 'paragraph':
+                _html += '<p>' + inline_parse(token.text).replace(/\n/g, '<br>') + '</p>';
                 break;
-            case 'li':
-                _html += token.list.join('');
+            case 'list':
+                token.list.forEach(function(item) {
+                    switch(item.type) {
+                        case 'list-open':
+                            _html += '<' + item.tag + '>';
+                            break;
+                        case 'list-close':
+                            _html += '</' + item.tag + '>';
+                            break;
+                        case 'item-open':
+                            _html += '<li>';
+                            break;
+                        case 'item-close':
+                            _html += '</li>';
+                            break;
+                        case 'item':
+                            _html += inline_parse(item.text).replace(/\n/g, '<br>');
+                            break;
+                    }
+                });
                 break;
             case 'code':
+                token.attributes = token.lang === undefined ? '' : ' class="language-' + token.lang + '"';
                 _html += '<pre><code' + token.attributes + '>' + code_parse(token.text) + '</code></pre>';
                 break;
             case 'blockquote':
+                token.attributes = token.class === undefined ? '' : ' class="' + token.class + '"';
                 _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n/g, '<br>')) + '</blockquote>';
                 break;
             case 'table':

@@ -43,7 +43,7 @@ function markdown(src, img_cdn = '') {
                 tag: br[1] === '*' ? 'br' : 'hr',
             });
             _text = _text.substring(br[0].length);
-        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:\n{2,}|$)/)) {
+        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
             // list lexing * , - , 1. ,
             let list_text = li[0].replace(/\t/g, '    ');
             token = {
@@ -241,7 +241,7 @@ function markdown(src, img_cdn = '') {
                             _html += '</li>';
                             break;
                         case 'item':
-                            _html += inline_parse(item.text);
+                            _html += inline_parse(item.text).replace(/\n/g, '<br>');
                             break;
                     }
                 });

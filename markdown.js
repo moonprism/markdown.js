@@ -1,8 +1,10 @@
-function markdown(src, img_cdn = '') {
+function markdown(src, config = {}) {
     let _text = src.replace(/(\r\n|\r)/g, "\n");
     let _html = '';
     let tokens = [];
+    let img_cdn = config.imageCDN ? config.imageCDN : '';
     let inline_parse = function (str) {
+        if (config.inlineParse) str = config.inlineParse(str)
         return str.replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
@@ -18,6 +20,7 @@ function markdown(src, img_cdn = '') {
             .replace(/\\([!\[\*\~`#])/g, '$1');
     };
     let code_parse = function (str) {
+        if (config.codeParse) str = config.codeParse(str)
         return str.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
@@ -27,7 +30,7 @@ function markdown(src, img_cdn = '') {
     let token;
     let heading, br, li, code, blockquote, table, paragraph, space, none, html;
     while (_text) {
-        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|{#(\S*)})(?:\n+|$)/)) {
+        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#(\S*)})(?:\n+|$)/)) {
             // heading lexing #{1,6}
             tokens.push({
                 type: 'heading',

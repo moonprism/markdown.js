@@ -34,7 +34,7 @@ describe('image', () => {
         assert.strictEqual(markdown('![text](http://address)'), '<p><img alt="text" src="http://address" ></p>');
     });
     it('cdn', () => {
-        assert.strictEqual(markdown('![text](address)', 'http://test.cdn/'), '<p><img alt="text" src="http://test.cdn/address" ></p>');
+        assert.strictEqual(markdown('![text](address)', {imageCDN: 'http://test.cdn/'}), '<p><img alt="text" src="http://test.cdn/address" ></p>');
     });
 })
 
@@ -44,6 +44,19 @@ describe('break', () => {
     });
     it('---', () => {
         assert.strictEqual(markdown('---'), '<hr>');
+    });
+})
+
+// ...
+describe('heading', () => {
+    it('h1', () => {
+        assert.strictEqual(markdown('# hh'), '<h1>hh</h1>');
+    });
+    it('h2', () => {
+        assert.strictEqual(markdown('## hh {#h2}'), '<h2 id="h2">hh</h2>');
+    });
+    it('h3 > custom inline parse', () => {
+        assert.strictEqual(markdown('## hhh:zap: {#h2}', {inlineParse: function(str){return str.replace(/:zap:/g, '⚡️')}}), '<h2 id="h2">hhh⚡️</h2>');
     });
 })
 

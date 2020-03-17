@@ -29,7 +29,11 @@ a simple markdown parser for JavaScript.
     * Item c
 2. Step 2
     1. first
+
+- [x] task1
+- [ ] task2
 ```
+
 * blockquotes
 
 ```md

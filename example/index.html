@@ -15,11 +15,12 @@
             #text{ width: 99%;margin: 10px auto; }
             .in,#mark,#code{ margin-left: 2px; }
         }
+        li input {margin-right: 4px !important;position: relative;top: 2px;}
     </style>
     <script type="text/javascript" src="./markdown.min.js"></script>
     <script type="text/javascript">
         var $ = function(id){ return document.getElementById(id);}
-        function parse(){$('code').innerText = $('mark').innerHTML = markdown($('text').value);}
+        function parse(){$('code').innerText = $('mark').innerHTML = markdown($('text').value, {debug: true});}
     </script>
 </head>
 <body>
@@ -44,9 +45,9 @@ let html = markdown('# hello world')
     <div id="code"></div>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css">
 </body>
-    <script>
-        parse();
-        $('text').focus(),
+<script>
+    parse();
+    $('text').focus(),
         document.querySelector("textarea").addEventListener('keydown', function (e) {
             if (e.keyCode === 9) {
                 var start = this.selectionStart;

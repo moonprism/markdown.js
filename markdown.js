@@ -107,8 +107,17 @@ function markdown(src, config = {}) {
                         );
                     }
                 }
+                let list_item_text = item[4].trim();
+                let checkbox = list_item_text.match(/^\[([ x])\] ([\s\S]+)/);
+                if (checkbox) {
+                    token.list.push({
+                        type: 'task',
+                        checked: checkbox[1] === 'x'
+                    })
+                    list_item_text = checkbox[2]
+                }
                 token.list.push(
-                    {type: 'item', text: item[4].trim()}
+                    {type: 'item', text: list_item_text}
                 );
             }
             // pop all lv_info from stack
@@ -215,6 +224,9 @@ function markdown(src, config = {}) {
         }
         continue;
     }
+    if (config.debug) {
+        console.log(Object.assign({}, tokens));
+    }
     // parse
     while (token = tokens.shift()) {
         switch(token.type) {
@@ -245,6 +257,9 @@ function markdown(src, config = {}) {
                             break;
                         case 'item':
                             _html += inline_parse(item.text).replace(/\n/g, '<br>');
+                            break;
+                        case 'task':
+                            _html += '<input' + (item.checked ? ' checked' : '') + ' disabled type="checkbox"></input>';
                             break;
                     }
                 });

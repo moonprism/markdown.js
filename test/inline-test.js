@@ -6,6 +6,9 @@ describe('code', () => {
     it('base', () => {
         assert.strictEqual(markdown('`cc`'), '<p><code>cc</code></p>');
     });
+    it('> link', () => {
+        assert.strictEqual(markdown('`[xx](http://xx)`'), '<p><code><a href="http://xx">xx</a></code></p>');
+    });
 })
 
 describe('italicize', () => {
@@ -22,10 +25,10 @@ describe('bold', () => {
 
 describe('link', () => {
     it('base', () => {
-        assert.strictEqual(markdown('[text](http://address)'), '<p><a target="_blank" href="http://address">text</a></p>');
+        assert.strictEqual(markdown('[text](http://address)', {linkTargetBlank: true}), '<p><a target="_blank" href="http://address">text</a></p>');
     });
     it('> code', () => {
-        assert.strictEqual(markdown('[text `code`](address)'), '<p><a target="_blank" href="address">text <code>code</code></a></p>');
+        assert.strictEqual(markdown('[text `code`](address)'), '<p><a href="address">text <code>code</code></a></p>');
     });
 })
 

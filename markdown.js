@@ -3,18 +3,19 @@ function markdown(src, config = {}) {
     let _html = '';
     let tokens = [];
     let img_cdn = config.imageCDN ? config.imageCDN : '';
+    let link_target_blank = config.linkTargetBlank ? ' target="_blank"' : '';
     let inline_parse = function (str) {
         if (config.inlineParse) str = config.inlineParse(str)
-        return str.replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
+        return str.replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
+                return prefix + '<code>' + code_parse(code) + '</code>'
+            })
+            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a target="_blank" href="$3">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
-            .replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
-                return prefix + '<code>' + code_parse(code) + '</code>'
-            })
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
             .replace(/\\([!\[\*\~`#])/g, '$1');

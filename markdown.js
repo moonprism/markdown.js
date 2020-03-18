@@ -181,7 +181,6 @@ function markdown(src, config = {}) {
             token.list.push({
                 type: 'item',
                 text: blockquote_text,
-                class: blockquote_class
             });
             for (let i=0; i<max_depth; i++) {
                 token.list.push({type: 'close'});

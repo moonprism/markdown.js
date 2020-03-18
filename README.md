@@ -86,7 +86,7 @@ import markdown from 'moonprism-markdown'
 let html = markdown('# hello world')
 ```
 
-download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.min.js), and import file in your page.
+or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.min.js), and import file in your page.
 
 ```html
 <script type="text/javascript" src="./markdown.min.js"></script>

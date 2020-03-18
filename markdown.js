@@ -31,7 +31,7 @@ function markdown(src, config = {}) {
     let token;
     let heading, br, li, code, blockquote, table, paragraph, space, none, html;
     while (_text) {
-        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#(\S*)})(?:\n+|$)/)) {
+        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/)) {
             // heading lexing #{1,6}
             tokens.push({
                 type: 'heading',
@@ -52,7 +52,7 @@ function markdown(src, config = {}) {
             let list_text = li[0].replace(/\t/g, '    ');
             token = {
                 type: 'list',
-                list: [],
+                list: []
             };
             let items = [];
             let item_match_result;
@@ -140,12 +140,53 @@ function markdown(src, config = {}) {
             _text = _text.substring(code[0].length);
         } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
             // blockquote lexing >
-            // todo parse > > ... child blockquote
-            tokens.push({
+            let token = {
                 type: 'blockquote',
-                class: blockquote[1],
-                text: blockquote[2]
+                list: [],
+            };
+            let blockquote_text = '';
+            let blockquote_class = blockquote[1];
+            let items = blockquote[2].split('\n');
+            let max_depth = 1;
+            token.list.push({
+                type: 'open',
+                class: blockquote_class,
             });
+            for (let i=0; i<items.length; i++) {
+                let item = items[i].match(/^((?:\s*>)+)(?:\s|\[(\S+?)\]\s)(.*)$/);
+                if (item === null) {
+                    blockquote_text += (blockquote_text === '' ? '' : '\n') + items[i].trim();
+                    continue;
+                }
+                let depth = item[1].split('').reduce(function (x, y) {return (x[y]++ || (x[y] = 1), x);}, {})['>'];
+                if (depth > max_depth) {
+                    token.list.push({
+                        type: 'item',
+                        text: blockquote_text,
+                    });
+                    blockquote_text = item[3].trim();
+                    blockquote_class = item[2];
+                    for (let j = max_depth; j < depth; j++) {
+                        token.list.push({
+                            type: 'open',
+                            class: blockquote_class
+                        });
+                        blockquote_class = undefined;
+                    }
+                    max_depth = depth;
+                } else {
+                    blockquote_text += '\n' + item[3].trim();
+                }
+            }
+            token.list.push({
+                type: 'item',
+                text: blockquote_text,
+                class: blockquote_class
+            });
+            for (let i=0; i<max_depth; i++) {
+                token.list.push({type: 'close'});
+            }
+            tokens.push(token);
             _text = _text.substring(blockquote[0].length);
         } else if (table = _text.match(/^\|(.+?)\|\n/)) {
             // table lexing | | |
@@ -216,9 +257,9 @@ function markdown(src, config = {}) {
             _text = _text.substring(paragraph[0].length)
         } else if (space = _text.match(/^\n{2,}/)) {
             // space lexing
-            tokens.push({
-                type: 'space',
-            })
+            // tokens.push({
+            //     type: 'space',
+            // })
             _text = _text.substring(space[0].length)
         } else if (none = _text.match(/^\s+/)){
             // none
@@ -230,11 +271,12 @@ function markdown(src, config = {}) {
         console.log(Object.assign({}, tokens));
     }
     // parse
+    let attributes = '';
     while (token = tokens.shift()) {
         switch(token.type) {
             case 'heading':
-                token.attributes = token.id === undefined ? '' : ' id="' + token.id + '"';
-                _html += '<h' + token.level + token.attributes + '>' + inline_parse(token.text) + '</h' + token.level + '>';
+                attributes = token.id === undefined ? '' : ' id="' + token.id + '"';
+                _html += '<h' + token.level + attributes + '>' + inline_parse(token.text) + '</h' + token.level + '>';
                 break;
             case 'br':
                 _html += '<' + token.tag + '>';
@@ -267,12 +309,24 @@ function markdown(src, config = {}) {
                 });
                 break;
             case 'code':
-                token.attributes = token.lang === undefined ? '' : ' class="language-' + token.lang + '"';
-                _html += '<pre><code' + token.attributes + '>' + code_parse(token.text) + '</code></pre>';
+                attributes = token.lang === undefined ? '' : ' class="language-' + token.lang + '"';
+                _html += '<pre><code' + attributes + '>' + code_parse(token.text) + '</code></pre>';
                 break;
             case 'blockquote':
-                token.attributes = token.class === undefined ? '' : ' class="' + token.class + '"';
-                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n>*/g, '<br>')) + '</blockquote>';
+                token.list.forEach(function(item) {
+                    switch(item.type) {
+                        case 'open':
+                            attributes = item.class === undefined ? '' : ' class="' + item.class + '"';
+                            _html += '<blockquote' + attributes + '>';
+                            break;
+                        case 'close':
+                            _html += '</blockquote>';
+                            break;
+                        case 'item':
+                            _html += '<p>' + inline_parse(item.text).replace(/\n/g, '<br>') + '</p>';
+                            break;
+                    }
+                })
                 break;
             case 'table':
                 let thead = '<thead><tr>';

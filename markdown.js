@@ -193,7 +193,7 @@ function markdown(src, config = {}) {
             _text = _text.substring(table[0].length);
             if (ahead_table === null) {
                 tokens.push({
-                    type: 'p',
+                    type: 'paragraph',
                     text: table[0],
                 });
                 continue;

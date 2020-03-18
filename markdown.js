@@ -140,6 +140,7 @@ function markdown(src, config = {}) {
             _text = _text.substring(code[0].length);
         } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
             // blockquote lexing >
+            // todo parse > > ... child blockquote
             tokens.push({
                 type: 'blockquote',
                 class: blockquote[1],
@@ -271,7 +272,7 @@ function markdown(src, config = {}) {
                 break;
             case 'blockquote':
                 token.attributes = token.class === undefined ? '' : ' class="' + token.class + '"';
-                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n/g, '<br>')) + '</blockquote>';
+                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n>*/g, '<br>')) + '</blockquote>';
                 break;
             case 'table':
                 let thead = '<thead><tr>';

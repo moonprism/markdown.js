@@ -6,6 +6,9 @@ describe('code', () => {
     it('base', () => {
         assert.strictEqual(markdown('`cc`'), '<p><code>cc</code></p>');
     });
+    it('> link', () => {
+        assert.strictEqual(markdown('`[xx](http://xx)`'), '<p><code><a href="http://xx">xx</a></code></p>');
+    });
 })
 
 describe('italicize', () => {
@@ -22,10 +25,10 @@ describe('bold', () => {
 
 describe('link', () => {
     it('base', () => {
-        assert.strictEqual(markdown('[text](http://address)'), '<p><a target="_blank" href="http://address">text</a></p>');
+        assert.strictEqual(markdown('[text](http://address)', {linkTargetBlank: true}), '<p><a target="_blank" href="http://address">text</a></p>');
     });
     it('> code', () => {
-        assert.strictEqual(markdown('[text `code`](address)'), '<p><a target="_blank" href="address">text <code>code</code></a></p>');
+        assert.strictEqual(markdown('[text `code`](address)'), '<p><a href="address">text <code>code</code></a></p>');
     });
 })
 
@@ -34,7 +37,7 @@ describe('image', () => {
         assert.strictEqual(markdown('![text](http://address)'), '<p><img alt="text" src="http://address" ></p>');
     });
     it('cdn', () => {
-        assert.strictEqual(markdown('![text](address)', 'http://test.cdn/'), '<p><img alt="text" src="http://test.cdn/address" ></p>');
+        assert.strictEqual(markdown('![text](address)', {imageCDN: 'http://test.cdn/'}), '<p><img alt="text" src="http://test.cdn/address" ></p>');
     });
 })
 
@@ -44,6 +47,19 @@ describe('break', () => {
     });
     it('---', () => {
         assert.strictEqual(markdown('---'), '<hr>');
+    });
+})
+
+// ...
+describe('heading', () => {
+    it('h1', () => {
+        assert.strictEqual(markdown('# hh'), '<h1>hh</h1>');
+    });
+    it('h2', () => {
+        assert.strictEqual(markdown('## hh {#h2}'), '<h2 id="h2">hh</h2>');
+    });
+    it('h3 > custom inline parse', () => {
+        assert.strictEqual(markdown('## hhh:zap: {#h2}', {inlineParse: function(str){return str.replace(/:zap:/g, '⚡️')}}), '<h2 id="h2">hhh⚡️</h2>');
     });
 })
 

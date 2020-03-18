@@ -29,7 +29,11 @@ a simple markdown parser for JavaScript.
     * Item c
 2. Step 2
     1. first
+
+- [x] task1
+- [ ] task2
 ```
+
 * blockquotes
 
 ```md
@@ -37,7 +41,9 @@ a simple markdown parser for JavaScript.
 next line
 
 >[success] blockquote
+> next line
 ```
+
 * code
 
 \```go
@@ -87,4 +93,15 @@ or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.m
 <script type="text/javascript">
     var html = markdown('# hello world')
 </script>
+```
+
+## config
+
+```js
+markdown('text', {
+    imageCDN: 'https://cdn.xx',
+    linkTargetBlank: true,
+    lineParse: function(str) {return str},
+    codeParse: function(str) {return str}
+})
 ```

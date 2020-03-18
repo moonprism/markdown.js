@@ -1,23 +1,27 @@
-function markdown(src, img_cdn = '') {
+function markdown(src, config = {}) {
     let _text = src.replace(/(\r\n|\r)/g, "\n");
     let _html = '';
     let tokens = [];
+    let img_cdn = config.imageCDN ? config.imageCDN : '';
+    let link_target_blank = config.linkTargetBlank ? ' target="_blank"' : '';
     let inline_parse = function (str) {
-        return str.replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
+        if (config.inlineParse) str = config.inlineParse(str)
+        return str.replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
+                return prefix + '<code>' + code_parse(code) + '</code>'
+            })
+            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a target="_blank" href="$3">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
-            .replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
-                return prefix + '<code>' + code_parse(code) + '</code>'
-            })
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
             .replace(/\\([!\[\*\~`#])/g, '$1');
     };
     let code_parse = function (str) {
+        if (config.codeParse) str = config.codeParse(str)
         return str.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
@@ -27,7 +31,7 @@ function markdown(src, img_cdn = '') {
     let token;
     let heading, br, li, code, blockquote, table, paragraph, space, none, html;
     while (_text) {
-        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|{#(\S*)})(?:\n+|$)/)) {
+        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#(\S*)})(?:\n+|$)/)) {
             // heading lexing #{1,6}
             tokens.push({
                 type: 'heading',
@@ -104,8 +108,17 @@ function markdown(src, img_cdn = '') {
                         );
                     }
                 }
+                let list_item_text = item[4].trim();
+                let checkbox = list_item_text.match(/^\[([ x])\] ([\s\S]+)/);
+                if (checkbox) {
+                    token.list.push({
+                        type: 'task',
+                        checked: checkbox[1] === 'x'
+                    })
+                    list_item_text = checkbox[2]
+                }
                 token.list.push(
-                    {type: 'item', text: item[4].trim()}
+                    {type: 'item', text: list_item_text}
                 );
             }
             // pop all lv_info from stack
@@ -127,6 +140,7 @@ function markdown(src, img_cdn = '') {
             _text = _text.substring(code[0].length);
         } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
             // blockquote lexing >
+            // todo parse > > ... child blockquote
             tokens.push({
                 type: 'blockquote',
                 class: blockquote[1],
@@ -212,6 +226,9 @@ function markdown(src, img_cdn = '') {
         }
         continue;
     }
+    if (config.debug) {
+        console.log(Object.assign({}, tokens));
+    }
     // parse
     while (token = tokens.shift()) {
         switch(token.type) {
@@ -243,6 +260,9 @@ function markdown(src, img_cdn = '') {
                         case 'item':
                             _html += inline_parse(item.text).replace(/\n/g, '<br>');
                             break;
+                        case 'task':
+                            _html += '<input' + (item.checked ? ' checked' : '') + ' disabled type="checkbox"></input>';
+                            break;
                     }
                 });
                 break;
@@ -252,7 +272,7 @@ function markdown(src, img_cdn = '') {
                 break;
             case 'blockquote':
                 token.attributes = token.class === undefined ? '' : ' class="' + token.class + '"';
-                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n/g, '<br>')) + '</blockquote>';
+                _html += '<blockquote' + token.attributes + '>' + inline_parse(token.text.replace(/\n>*/g, '<br>')) + '</blockquote>';
                 break;
             case 'table':
                 let thead = '<thead><tr>';

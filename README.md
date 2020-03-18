@@ -1,4 +1,4 @@
-# markdown.js
+# Markdown.js
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moonprism/markdown.js/ci?style=flat-square)](https://github.com/moonprism/markdown.js/actions?query=workflow%3Aci) [![GitHub file gzip size in bytes](http://img.badgesize.io/moonprism/markdown.js/master/dist/markdown.min.js?compression=gzip&style=flat-square&color=blue)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.min.js)
 
@@ -8,7 +8,7 @@ a simple markdown parser for JavaScript.
 
 * ⚡ [example](https://moonprism.github.io/markdown.js/)
 
-## syntax
+## Syntax
 
 * \``inline code`\`
 * \**italicize*\*
@@ -41,7 +41,7 @@ a simple markdown parser for JavaScript.
 next line
 
 >[success] blockquote
-> next line
+> > next block
 ```
 
 * code
@@ -73,20 +73,20 @@ func main() {
 </svg>
 ```
 
-## install
+## Install
 
 ```shell
 npm install moonprism-markdown --save
 ```
 
-## usage
+## Usage
 
 ```js
 import markdown from 'moonprism-markdown'
 let html = markdown('# hello world')
 ```
 
-or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.min.js)
+download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.min.js), and import file in your page.
 
 ```html
 <script type="text/javascript" src="./markdown.min.js"></script>
@@ -95,11 +95,12 @@ or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.m
 </script>
 ```
 
-## config
+## Config
 
 ```js
-markdown('text', {
-    imageCDN: 'https://cdn.xx',
+markdown('# hello world', {
+    debug: true,
+    imageCDN: 'https://cdn.xx/',
     linkTargetBlank: true,
     lineParse: function(str) {return str},
     codeParse: function(str) {return str}

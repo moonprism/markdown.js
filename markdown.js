@@ -31,7 +31,7 @@ function markdown(src, config = {}) {
     let token;
     let heading, br, li, code, blockquote, table, paragraph, space, none, html;
     while (_text) {
-        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#(\S*)})(?:\n+|$)/)) {
+        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/)) {
             // heading lexing #{1,6}
             tokens.push({
                 type: 'heading',

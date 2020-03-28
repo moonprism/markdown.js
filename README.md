@@ -59,11 +59,11 @@ func main() {
 * table
 
 ```md
-| left align | right align | center |
-| :------| ------: | :------: |
-| AND | 0 | 1 |
-| 0 | 0 | 0 |
-| 1 | 0 | 1 |
+ left align | right align | center 
+ :------| ------: | :------: 
+ AND | 0 | 1 
+ 0 | 0 | 0 
+ 1 | 0 | 1 
 ```
 * html
 

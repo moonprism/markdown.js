@@ -256,9 +256,9 @@ function markdown(src, config = {}) {
             _text = _text.substring(paragraph[0].length)
         } else if (space = _text.match(/^\n{2,}/)) {
             // space lexing
-            // tokens.push({
-            //     type: 'space',
-            // })
+            tokens.push({
+                type: 'space',
+            })
             _text = _text.substring(space[0].length)
         } else if (none = _text.match(/^\s+/)){
             // none

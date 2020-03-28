@@ -41,6 +41,7 @@ describe('image', () => {
     });
 })
 
+// ...
 describe('break', () => {
     it('***', () => {
         assert.strictEqual(markdown('***'), '<br>');
@@ -50,7 +51,6 @@ describe('break', () => {
     });
 })
 
-// ...
 describe('heading', () => {
     it('h1', () => {
         assert.strictEqual(markdown('# hh'), '<h1>hh</h1>');
@@ -58,31 +58,10 @@ describe('heading', () => {
     it('h2', () => {
         assert.strictEqual(markdown('## hh {#h2}'), '<h2 id="h2">hh</h2>');
     });
-    it('h3 > custom inline parse', () => {
-        assert.strictEqual(markdown('## hhh:zap: {#h2}', {inlineParse: function(str){return str.replace(/:zap:/g, '⚡️')}}), '<h2 id="h2">hhh⚡️</h2>');
-    });
-})
-
-describe('heading', () => {
-    it('h1', () => {
-        assert.strictEqual(markdown('# hh'), '<h1>hh</h1>');
-    });
-    it('h2', () => {
-        assert.strictEqual(markdown('## hh'), '<h2>hh</h2>');
-    });
-    it('h3', () => {
-        assert.strictEqual(markdown('### hh'), '<h3>hh</h3>');
-    });
-    it('> bold', () => {
+    it('h3 > bold', () => {
         assert.strictEqual(markdown('### hh**h**'), '<h3>hh<b>h</b></h3>');
     });
-})
-
-describe('break', () => {
-    it('***', () => {
-        assert.strictEqual(markdown('***'), '<br>');
-    });
-    it('---', () => {
-        assert.strictEqual(markdown('---'), '<hr>');
+    it('h3 > custom inline parse', () => {
+        assert.strictEqual(markdown('## hhh:zap: {#h2}', {inlineParse: function(str){return str.replace(/:zap:/g, '⚡️')}}), '<h2 id="h2">hhh⚡️</h2>');
     });
 })

@@ -14,11 +14,19 @@ a simple markdown parser for JavaScript.
 * \**italicize*\*
 * \*\***bold**\*\*
 * \[link text](address)
+* \<auto-link>
 * \!\[image alt text](src)
 * \*\*\* or ---
-* \## heading {#heading-id}
 * \~\~~~strikethrough~~\~\~
 * \ escape inline
+* heading
+
+```md
+# h1 {#heading-id}
+## h2
+### h3
+```
+
 * list
 
 ```md

@@ -13,6 +13,7 @@ function markdown(src, config = {}) {
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
             .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
+            .replace(/([^\\]|^)<([a-zA-Z]+:.*?)>/g, '$1<a ' + link_target_blank + ' href="$2">$2</a>')
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
@@ -219,7 +220,7 @@ function markdown(src, config = {}) {
                 _text = _text.substring(ahead_table[0].length);
             }
             tokens.push(token);
-        } else if (html = _text.match(/^<(\S+?)[\s|>][\s\S]*?(?:<\/\S+>\s*|\n{2,}|$)/)) {
+        } else if (html = _text.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/[a-zA-Z\-]+>\s*|\n{2,}|$)/)) {
             // html block lexing <></>
             tokens.push({
                 type: 'html',

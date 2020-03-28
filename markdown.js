@@ -187,47 +187,38 @@ function markdown(src, config = {}) {
             }
             tokens.push(token);
             _text = _text.substring(blockquote[0].length);
-        } else if (table = _text.match(/^\|(.+?)\|\n/)) {
+        } else if (table = _text.match(/^\|*(.+\|[^\|^\n]+.*?)\|*\n\|*([-:\| ]+?\|[-:\| ]+?.*?)\|*\n/)) {
             // table lexing | | |
-            let ahead_table = _text.substring(table[0].length).match(/^\|([-:\|\s]+?)\|\n/);
             _text = _text.substring(table[0].length);
-            if (ahead_table === null) {
-                tokens.push({
-                    type: 'paragraph',
-                    text: table[0],
-                });
-                continue;
-            } else {
-                token = {
-                    type: "table",
-                    header: table[1].split('|').map(function(item){return item.trim()}),
-                    align: [],
-                    cells: [],
-                }
-                // lexing align
-                let align_slice = ahead_table[1].split('|');
-                for (let i = 0; i < align_slice.length; i++) {
-                    let align_text = align_slice[i].trim();
-                    let align_left_char = align_text.substring(0, 1);
-                    let align_right_char = align_text.substring(align_text.length - 1);
-                    if (align_left_char == ':' && align_right_char == ':') {
-                        token.align.push('center');
-                    } else if (align_left_char == ':') {
-                        token.align.push('left');
-                    } else if (align_right_char == ':') {
-                        token.align.push('right');
-                    } else {
-                        token.align.push('');
-                    }
-                }
-                _text = _text.substring(ahead_table[0].length);
-                // lexing cell
-                while (ahead_table = _text.match(/^\|(.+?)\|(?:\n|$)/)) {
-                    token.cells.push(ahead_table[1].split('|').map(function(item){return item.trim()}));
-                    _text = _text.substring(ahead_table[0].length);
-                }
-                tokens.push(token);
+            token = {
+                type: "table",
+                header: table[1].split('|').map(function (item) { return item.trim() }),
+                align: [],
+                cells: [],
             }
+            // handle align
+            let align_slice = table[2].split('|');
+            align_slice.forEach(function(item){
+                let align_text = item.trim();
+                let align_left_char = align_text.substring(0, 1);
+                let align_right_char = align_text.substring(align_text.length - 1);
+                if (align_left_char == ':' && align_right_char == ':') {
+                    token.align.push('center');
+                } else if (align_left_char == ':') {
+                    token.align.push('left');
+                } else if (align_right_char == ':') {
+                    token.align.push('right');
+                } else {
+                    token.align.push('');
+                }
+            })
+            // lexing cell
+            let ahead_table;
+            while (ahead_table = _text.match(/^\|*(.+\|[^\|^\n]+.*?)\|*(?:\n|$)/)) {
+                token.cells.push(ahead_table[1].split('|').map(function (item) { return item.trim() }));
+                _text = _text.substring(ahead_table[0].length);
+            }
+            tokens.push(token);
         } else if (html = _text.match(/^<(\S+?)[\s|>][\s\S]*?(?:<\/\S+>\s*|\n{2,}|$)/)) {
             // html block lexing <></>
             tokens.push({

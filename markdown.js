@@ -4,11 +4,13 @@ function markdown(src, config = {}) {
     let tokens = [];
     let img_cdn = config.imageCDN ? config.imageCDN : '';
     let link_target_blank = config.linkTargetBlank ? ' target="_blank"' : '';
+    let inline_code_parse = function (match, prefix, code, tail) {
+        return prefix + '<code>' + code_parse(code) + '</code>' + tail;
+    }
     let inline_parse = function (str) {
         if (config.inlineParse) str = config.inlineParse(str)
-        return str.replace(/([^\\]|^)`(.+?)`/g, function (match, prefix, code) {
-                return prefix + '<code>' + code_parse(code) + '</code>'
-            })
+        return str.replace(/([^\\^`]|^)``(.+?[^`])``([^`]|$)/g, inline_code_parse)
+            .replace(/([^\\]|^)`(.+?)`(.|$)/g, inline_code_parse)
             .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
             .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')

@@ -3,7 +3,7 @@ function markdown(src, config = {}) {
     let _html = '';
     let tokens = [];
     let img_cdn = config.imageCDN ? config.imageCDN : '';
-    let link_target_blank = config.linkTargetBlank ? ' target="_blank"' : '';
+    let link_target_blank = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
     let inline_code_parse = function (match, prefix, code, tail) {
         return prefix + '<code>' + code_parse(code) + '</code>' + tail;
     }

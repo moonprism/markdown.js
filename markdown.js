@@ -3,22 +3,18 @@ function markdown(src, config = {}) {
     let _html = '';
     let tokens = [];
     let img_cdn = config.imageCDN ? config.imageCDN : '';
-    let link_target_blank = config.linkTargetBlank ? ' target="_blank"' : '';
-    let inline_code_parse = function (match, prefix, code, tail) {
-        return prefix + '<code>' + code_parse(code) + '</code>' + tail;
-    }
+    let link_target_blank = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
     let inline_parse = function (str) {
         if (config.inlineParse) str = config.inlineParse(str)
-        return str.replace(/([^\\^`]|^)``(.+?[^`])``([^`]|$)/g, inline_code_parse)
-            .replace(/([^\\]|^)`(.+?)`(.|$)/g, inline_code_parse)
-            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
-            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
-            .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
-            .replace(/([^\\]|^)<([a-zA-Z]+:.*?)>/g, '$1<a ' + link_target_blank + ' href="$2">$2</a>')
-            .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
-            .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
-            .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
+        return str.replace(/(?<!\\)(`+)([^`]|[^`].*?[^`])\1(?!`)/g, '<code>$2</code>')
+            .replace(/(?<!\\)!\[(.*?)\]\((http.*?)\)/g, '<img alt="$1" src="$2" >')
+            .replace(/(?<!\\)!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="' + img_cdn + '$2" >')
+            .replace(/(?<!\\)\[(.*?)\]\((#.*?)\)/g, '<a href="$2">$1</a>')
+            .replace(/(?<!\\)\[(.*?)\]\((.*?)\)/g, '<a' + link_target_blank + ' href="$2">$1</a>')
+            .replace(/(?<!\\)<([a-zA-Z]+:.*?)>/g, '<a ' + link_target_blank + ' href="$1">$1</a>')
+            .replace(/(?<!\\)\*\*(.+?)\*\*/g, '<b>$1</b>')
+            .replace(/(?<!\\)\*(.+?)\*/g, '<i>$1</i>')
+            .replace(/(?<!\\)~~(.+?)~~/g, '<s>$1</s>')
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
             .replace(/\\([!\[\*\~`#])/g, '$1');
@@ -222,7 +218,7 @@ function markdown(src, config = {}) {
                 _text = _text.substring(ahead_table[0].length);
             }
             tokens.push(token);
-        } else if (html = _text.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/[a-zA-Z\-]+>\s*|\n{2,}|$)/)) {
+        } else if (html = _text.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/)) {
             // html block lexing <></>
             tokens.push({
                 type: 'html',

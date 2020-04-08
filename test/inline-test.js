@@ -25,7 +25,7 @@ describe('bold', () => {
 
 describe('link', () => {
     it('base', () => {
-        assert.strictEqual(markdown('[text](http://address)', {linkTargetBlank: true}), '<p><a target="_blank" href="http://address">text</a></p>');
+        assert.strictEqual(markdown('[text](http://address)', {linkTargetBlank: true}), '<p><a target="_blank" rel="noopener" href="http://address">text</a></p>');
     });
     it('> code', () => {
         assert.strictEqual(markdown('[text `code`](address)'), '<p><a href="address">text <code>code</code></a></p>');

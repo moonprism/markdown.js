@@ -4,7 +4,7 @@
 
 ### v2.4
 
-* Escaping Backticks
+* [x] Escaping Backticks
 
 ```md
 ``Use `code` in your Markdown file.``

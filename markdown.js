@@ -116,6 +116,11 @@ function markdown(src, config = {}) {
                     })
                     list_item_text = checkbox[2]
                 }
+                // todo rewrite list lexing in v2.5
+                list_item_text = list_item_text.replace(/```(?:(\S+)|)\n([\s\S]*?)\n```(\n|$)/g, function(match, lang, code_text) {
+                    let attributes = lang === undefined ? '' : ' class="language-' + lang + '"';
+                    return '<pre><code' + attributes + '>' + code_parse(code_text) + '</code></pre>';
+                })
                 token.list.push(
                     {type: 'item', text: list_item_text}
                 );

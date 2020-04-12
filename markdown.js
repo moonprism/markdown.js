@@ -13,7 +13,10 @@ function markdown(src, config = {}) {
     }
     let inline_parse = function (str) {
         if (config.inlineParse) str = config.inlineParse(str)
-        return str.replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
+        return str
+            .replace(/\\</g, "&lt;")
+            .replace(/\\>/g, "&gt;")
+            .replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
                 return prefix + '<code>' + code_parse(code) + '</code>'
             })
             .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
@@ -24,8 +27,6 @@ function markdown(src, config = {}) {
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
-            .replace(/\\</g, "&lt;")
-            .replace(/\\>/g, "&gt;")
             .replace(/\\([!\[\*\~`#])/g, '$1');
     };
     // lexing

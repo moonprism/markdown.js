@@ -4,21 +4,6 @@ function markdown(src, config = {}) {
     let tokens = [];
     let img_cdn = config.imageCDN ? config.imageCDN : '';
     let link_target_blank = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
-    let inline_parse = function (str) {
-        if (config.inlineParse) str = config.inlineParse(str)
-        return str.replace(/(?<!\\)(`+)([^`]|[^`].*?[^`])\1(?!`)/g, '<code>$2</code>')
-            .replace(/(?<!\\)!\[(.*?)\]\((http.*?)\)/g, '<img alt="$1" src="$2" >')
-            .replace(/(?<!\\)!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="' + img_cdn + '$2" >')
-            .replace(/(?<!\\)\[(.*?)\]\((#.*?)\)/g, '<a href="$2">$1</a>')
-            .replace(/(?<!\\)\[(.*?)\]\((.*?)\)/g, '<a' + link_target_blank + ' href="$2">$1</a>')
-            .replace(/(?<!\\)<([a-zA-Z]+:.*?)>/g, '<a ' + link_target_blank + ' href="$1">$1</a>')
-            .replace(/(?<!\\)\*\*(.+?)\*\*/g, '<b>$1</b>')
-            .replace(/(?<!\\)\*(.+?)\*/g, '<i>$1</i>')
-            .replace(/(?<!\\)~~(.+?)~~/g, '<s>$1</s>')
-            .replace(/\\</g, "&lt;")
-            .replace(/\\>/g, "&gt;")
-            .replace(/\\([!\[\*\~`#])/g, '$1');
-    };
     let code_parse = function (str) {
         if (config.codeParse) str = config.codeParse(str)
         return str.replace(/</g, "&lt;")
@@ -26,6 +11,23 @@ function markdown(src, config = {}) {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
     }
+    let inline_parse = function (str) {
+        if (config.inlineParse) str = config.inlineParse(str)
+        return str.replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
+                return prefix + '<code>' + code_parse(code) + '</code>'
+            })
+            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
+            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
+            .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
+            .replace(/([^\\]|^)<([a-zA-Z]+:.*?)>/g, '$1<a ' + link_target_blank + ' href="$2">$2</a>')
+            .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
+            .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
+            .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
+            .replace(/\\</g, "&lt;")
+            .replace(/\\>/g, "&gt;")
+            .replace(/\\([!\[\*\~`#])/g, '$1');
+    };
     // lexing
     let token;
     let heading, br, li, code, blockquote, table, paragraph, space, none, html;

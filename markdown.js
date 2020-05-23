@@ -49,7 +49,7 @@ function markdown(src, config = {}) {
                 tag: br[1] === '*' ? 'br' : 'hr',
             });
             _text = _text.substring(br[0].length);
-        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
+        } else if (li = _text.match(/^(\*|\-|(\d+)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
             // list lexing * , - , 1. ,
             let list_text = li[0].replace(/\t/g, '    ');
             token = {
@@ -58,14 +58,14 @@ function markdown(src, config = {}) {
             };
             let items = [];
             let item_match_result;
-            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d)\.)\s*|\n|$)/)) {
+            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d+)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d+)\.)\s*|\n|$)/)) {
                 items.push(item_match_result[1]);
                 list_text = list_text.substring(item_match_result[1].length);
             }
             let lv_info_stack = []; 
             let pop_info;
             for (let i=0; i<items.length; i++) {
-                let item = items[i].match(/^(\s*)(\*|\-|(\d)\.)\s([\s\S]*?)$/);
+                let item = items[i].match(/^(\s*)(\*|\-|(\d+)\.)\s([\s\S]*?)$/);
                 let level = item[1].length;
                 let tag = (item[2] === '*' || item[2] === '-') ? 'ul' : 'ol';
                 if (lv_info_stack.length === 0) {

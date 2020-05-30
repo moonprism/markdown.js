@@ -1,2 +1,3 @@
 >[success] bb
-> >[info] info
+>>[info] info
+

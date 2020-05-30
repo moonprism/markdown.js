@@ -49,7 +49,7 @@ function markdown(src, config = {}) {
                 tag: br[1] === '*' ? 'br' : 'hr',
             });
             _text = _text.substring(br[0].length);
-        } else if (li = _text.match(/^(\*|\-|(\d)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
+        } else if (li = _text.match(/^(\*|\-|(\d+)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
             // list lexing * , - , 1. ,
             let list_text = li[0].replace(/\t/g, '    ');
             token = {
@@ -58,14 +58,14 @@ function markdown(src, config = {}) {
             };
             let items = [];
             let item_match_result;
-            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d)\.)\s*|\n|$)/)) {
+            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d+)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d+)\.)\s*|\n|$)/)) {
                 items.push(item_match_result[1]);
                 list_text = list_text.substring(item_match_result[1].length);
             }
             let lv_info_stack = []; 
             let pop_info;
             for (let i=0; i<items.length; i++) {
-                let item = items[i].match(/^(\s*)(\*|\-|(\d)\.)\s([\s\S]*?)$/);
+                let item = items[i].match(/^(\s*)(\*|\-|(\d+)\.)\s([\s\S]*?)$/);
                 let level = item[1].length;
                 let tag = (item[2] === '*' || item[2] === '-') ? 'ul' : 'ol';
                 if (lv_info_stack.length === 0) {
@@ -145,7 +145,7 @@ function markdown(src, config = {}) {
                 text: code[2]
             });
             _text = _text.substring(code[0].length);
-        } else if (blockquote = _text.match(/^>(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
+        } else if (blockquote = _text.match(/^(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
             // blockquote lexing >
             let token = {
                 type: 'blockquote',
@@ -160,19 +160,19 @@ function markdown(src, config = {}) {
                 class: blockquote_class,
             });
             for (let i=0; i<items.length; i++) {
-                let item = items[i].match(/^((?:\s*>)+)(?:\s|\[(\S+?)\]\s)(.*)$/);
+                let item = items[i].match(/^((?:\s*(>|&gt;))+)(?:\s|\[(\S+?)\]\s)(.*)$/);
                 if (item === null) {
                     blockquote_text += (blockquote_text === '' ? '' : '\n') + items[i].trim();
                     continue;
                 }
-                let depth = item[1].split('').reduce(function (x, y) {return (x[y]++ || (x[y] = 1), x);}, {})['>'];
+                let depth = item[1].split(item[2]).reduce(function (x, y) {return (x[y]++ || (x[y] = 1), x);}, {})['']-1;
                 if (depth > max_depth) {
                     token.list.push({
                         type: 'item',
                         text: blockquote_text,
                     });
-                    blockquote_text = item[3].trim();
-                    blockquote_class = item[2];
+                    blockquote_text = item[4].trim();
+                    blockquote_class = item[3];
                     for (let j = max_depth; j < depth; j++) {
                         token.list.push({
                             type: 'open',
@@ -182,7 +182,7 @@ function markdown(src, config = {}) {
                     }
                     max_depth = depth;
                 } else {
-                    blockquote_text += '\n' + item[3].trim();
+                    blockquote_text += '\n' + item[4].trim();
                 }
             }
             token.list.push({

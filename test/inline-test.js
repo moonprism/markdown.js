@@ -34,10 +34,10 @@ describe('link', () => {
 
 describe('image', () => {
     it('base', () => {
-        assert.strictEqual(markdown('![text](http://address)'), '<p><img alt="text" src="http://address" ></p>');
+        assert.strictEqual(markdown('![text](http://address)'), '<p><img alt="text" src="http://address"></p>');
     });
     it('cdn', () => {
-        assert.strictEqual(markdown('![text](address)', {imageCDN: 'http://test.cdn/'}), '<p><img alt="text" src="http://test.cdn/address" ></p>');
+        assert.strictEqual(markdown('![text](address)', {imageCDN: 'http://test.cdn/'}), '<p><img alt="text" src="http://test.cdn/address"></p>');
     });
 })
 

@@ -17,10 +17,14 @@ function markdown(src, config = {}) {
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
             .replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
-                return prefix + '<code>' + code_parse(code) + '</code>'
+                return prefix + '<code>' + code_parse(code) + '</code>';
             })
-            .replace(/([^\\]|^)!\[(.*?)\]\((http.*?)\)/g, '$1<img alt="$2" src="$3" >')
-            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, '$1<img alt="$2" src="' + img_cdn + '$3" >')
+            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, function (match, prefix, alt, img) {
+                if (!img.match(/^(?:\/|http:|https:)/)) {
+                    img = img_cdn + img;
+                }
+                return prefix + '<img alt="' + alt + '" src="' + img + '">';
+            })
             .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
             .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
             .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*?)(?:>|&gt;)/g, '$1<a ' + link_target_blank + ' href="$2">$2</a>')

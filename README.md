@@ -6,7 +6,7 @@
 
 a simple markdown parser for JavaScript.
 
-* ⚡ [example](https://moonprism.github.io/markdown.js/)
+* :star: [example](https://moonprism.github.io/markdown.js/)
 
 ## Syntax
 
@@ -49,7 +49,7 @@ a simple markdown parser for JavaScript.
 next line
 
 >[success] blockquote
-> > next block
+>> next block
 ```
 
 * code

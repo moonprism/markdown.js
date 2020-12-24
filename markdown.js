@@ -9,7 +9,7 @@ function markdown(src, config = {}) {
         return str.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+            .replace(/'/g, "&#39;").replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>');
     }
     let inline_parse = function (str) {
         if (config.inlineParse) str = config.inlineParse(str)
@@ -19,15 +19,20 @@ function markdown(src, config = {}) {
             .replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
                 return prefix + '<code>' + code_parse(code) + '</code>';
             })
-            .replace(/([^\\]|^)!\[(.*?)\]\((.*?)\)/g, function (match, prefix, alt, img) {
+            .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, function (match, prefix, alt, img) {
                 if (!img.match(/^(?:\/|http:|https:)/)) {
                     img = img_cdn + img;
                 }
                 return prefix + '<img alt="' + alt + '" src="' + img + '">';
             })
-            .replace(/([^\\]|^)\[(.*?)\]\((#.*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\((.*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
-            .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*?)(?:>|&gt;)/g, '$1<a ' + link_target_blank + ' href="$2">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\((#[^<]*?)\)/g, '$1<a href="$3">$2</a>')
+            .replace(/([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
+            .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g, function (match, prefix, href) {
+                if (href.indexOf('<em>') !== -1){
+                    return code_parse(match);
+                }
+                return prefix + '<a ' + link_target_blank + ' href="' + href + '">' + href + '</a>'
+            })
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')

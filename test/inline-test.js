@@ -6,6 +6,12 @@ describe('code', () => {
     it('base', () => {
         assert.strictEqual(markdown('`cc`'), '<p><code>cc</code></p>');
     });
+    it('```', () => {
+        assert.strictEqual(markdown('```'), '<p>```</p>');
+    });
+    it('``dd`', () => {
+        assert.strictEqual(markdown('```dd`'), '<p><code>``dd</code></p>');
+    });
     it('> link', () => {
         assert.strictEqual(markdown('`[xx](http://xx)`'), '<p><code><a href="http://xx">xx</a></code></p>');
     });

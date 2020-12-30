@@ -16,8 +16,8 @@ function markdown(src, config = {}) {
         return str
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
-            .replace(/([^\\`]|^)(`+)([^`]|[^`].*?[^`])\2(?!`)/g, function (match, prefix, symbol, code) {
-                return prefix + '<code>' + code_parse(code) + '</code>';
+            .replace(/([^\\`]|^)\`(\`*)([^\`]+?)`/g, function (match, prefix, symbol, code) {
+                return prefix + '<code>' + symbol + code_parse(code) + '</code>';
             })
             .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, function (match, prefix, alt, img) {
                 if (!img.match(/^(?:\/|http:|https:)/)) {

@@ -1,361 +1,305 @@
-function markdown(src, config = {}) {
-    let _text = src.replace(/(\r\n|\r)/g, "\n");
-    let _html = '';
-    let tokens = [];
-    let img_cdn = config.imageCDN ? config.imageCDN : '';
-    let link_target_blank = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
-    let code_parse = function (str) {
-        if (config.codeParse) str = config.codeParse(str)
-        return str.replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;").replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>');
-    }
-    let inline_parse = function (str) {
-        if (config.inlineParse) str = config.inlineParse(str)
+function markdown(text, config = {}) {
+    text = text.replace(/(\r\n|\r)/g, '\n').replace(/\t/g, '  ');
+    var tokens = [];
+
+    const img_cdn = config.imageCDN ? config.imageCDN : '';
+    const link_attr = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
+
+    function parseCode (str) {
         return str
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/&lt;(\/?)em&gt;/g, '<$1em>')
+    }
+
+    function parseInline (str) {
+        return str
+            .replace(/\\\\/g, '🍕')
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
-            .replace(/([^\\`]|^)\`(\`*)([^\`]+?)`/g, function (match, prefix, symbol, code) {
-                return prefix + '<code>' + symbol + code_parse(code) + '</code>';
+            .replace(/([^\\]|^)(`+)([^`]+?)\2/g, (match, prefix, _, code) => {
+                return prefix+'<code>'+parseCode(code)+'</code>'
             })
-            .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, function (match, prefix, alt, img) {
+            .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (match, prefix, alt, img) => {
                 if (!img.match(/^(?:\/|http:|https:)/)) {
-                    img = img_cdn + img;
+                    img = img_cdn + img
                 }
-                return prefix + '<img alt="' + alt + '" src="' + img + '">';
+                return prefix+'<img alt="'+alt+'" src="'+img+'">'
             })
             .replace(/([^\\]|^)\[(.*?)\]\((#[^<]*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g, '$1<a' + link_target_blank + ' href="$3">$2</a>')
-            .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g, function (match, prefix, href) {
+            .replace(/([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g, '$1<a' + link_attr + ' href="$3">$2</a>')
+            .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g, (match, prefix, href) => {
                 if (href.indexOf('<em>') !== -1){
-                    return code_parse(match);
+                    return match
                 }
-                return prefix + '<a ' + link_target_blank + ' href="' + href + '">' + href + '</a>'
+                return prefix+'<a '+link_attr+' href="'+href+'">'+href+'</a>'
             })
             .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
-            .replace(/\\([!\[\*\~``#])/g, '$1');
-    };
-    // lexing
-    let token;
-    let heading, br, li, code, blockquote, table, paragraph, space, none, html;
-    while (_text) {
-        if (heading = _text.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/)) {
-            // heading lexing #{1,6}
+            .replace(/\\([!\[\*\~``#])/g, '$1')
+            .replace(/🍕/g, '\\')
+    }
+
+    function parseLists(str) {
+        let re = str.match(/^( *)(\*|\-|\d+\.) .+(\n.+|\n\n  .+)*/)
+        if (re) {
+            let order = re[2] !== '*' && re[2] !== '-'
+            let li = [];
+            if (re[1] !== '') {
+                li = re[0].split(new RegExp('(?:\n|^)'+re[1]+'(?:\\*|\\-|\\d+\\.) '))
+            } else {
+                li = re[0].split(/(?:^|\n)(?:\*|\-|\d+\.) /g)
+            }
+            li.shift()
+
+            tokens.push({type: 'list-open', order})
+
+            li.forEach(s => {
+                tokens.push({type: 'list-item-open'})
+                s = s.trim();
+                if (s.startsWith('[ ]')) {
+                    s = s.substr(3)
+                    tokens.push({type: 'task', done: false})
+                } else if (s.startsWith('[x]')) {
+                    s = s.substr(3)
+                    tokens.push({type: 'task', done: true})
+                }
+                if (s.indexOf('\n') != -1) {
+                    if (s.indexOf('\n\n  ')) {} //todo
+                    parse([parseHeading, parseLists, parseBlockCode, parseBlockquote, parseText, skipEmptyLines], s)
+                } else {
+                    tokens.push({type: 'text', value: s, br: false})
+                }
+                tokens.push({type: 'list-item-close'})
+            })
+            tokens.push({type: 'list-close', order})
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseText(str) {
+        let re = str.match(/^\s*(.+)(\n|$)/)
+        if (re) {
+            tokens.push({type:'text', value: re[1], br: true})
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseHeading(str) {
+        let re = str.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/)
+        if (re) {
             tokens.push({
                 type: 'heading',
-                level: heading[1].length,
-                id: heading[3],
-                text: heading[2]
+                level: re[1].length,
+                id: re[3],
+                text: re[2]
             });
-            _text = _text.substring(heading[0].length);
-        } else if (br = _text.match(/^([*-]){3}(?:\n+|$)/)) {
-            // break lexing ***, ---
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseLineBreak(str) {
+        let re = str.match(/^([*-]){3,}(?:\n+|$)/)
+        if (re) {
             tokens.push({
                 type: 'br',
-                tag: br[1] === '*' ? 'br' : 'hr',
+                blank: re[1] === '*',
             });
-            _text = _text.substring(br[0].length);
-        } else if (li = _text.match(/^(\*|\-|(\d+)\.)\s([\s\S]*?)(?:(?:\s*\n\s*){2,}|$)/)) {
-            // list lexing * , - , 1. ,
-            let list_text = li[0].replace(/\t/g, '    ');
-            token = {
-                type: 'list',
-                list: []
-            };
-            let items = [];
-            let item_match_result;
-            while (item_match_result = list_text.match(/^(\s*(\*|\-|(\d+)\.)\s([\s\S]*?)(\n|$))(?:\s*(\*|\-|(\d+)\.)\s*|\n|$)/)) {
-                items.push(item_match_result[1]);
-                list_text = list_text.substring(item_match_result[1].length);
-            }
-            let lv_info_stack = []; 
-            let pop_info;
-            for (let i=0; i<items.length; i++) {
-                let item = items[i].match(/^(\s*)(\*|\-|(\d+)\.)\s([\s\S]*?)$/);
-                let level = item[1].length;
-                let tag = (item[2] === '*' || item[2] === '-') ? 'ul' : 'ol';
-                if (lv_info_stack.length === 0) {
-                    lv_info_stack.push({
-                        lv: level,
-                        tag
-                    });
-                    token.list.push(
-                        {type: 'list-open', tag},
-                        {type: 'item-open'}
-                    );
-                } else {
-                    let last_level_info = lv_info_stack[lv_info_stack.length-1];
-                    if (level > last_level_info.lv) {
-                        lv_info_stack.push({
-                            lv: level,
-                            tag
-                        });
-                        token.list.push(
-                            {type: 'list-open', tag},
-                            {type: 'item-open'}
-                        );
-                    } else if (level < last_level_info.lv) {
-                        while(pop_info = lv_info_stack.pop()) {
-                            if (pop_info.lv === level) {
-                                lv_info_stack.push(pop_info);
-                                break;
-                            }
-                            token.list.push(
-                                {type: 'item-close'},
-                                {type: 'list-close', tag: pop_info.tag},
-                            );
-                        }
-                        token.list.push(
-                            {type: 'item-close'},
-                            {type: 'item-open'}
-                        );
-                    } else {
-                        token.list.push(
-                            {type: 'item-close'},
-                            {type: 'item-open'}
-                        );
-                    }
-                }
-                let list_item_text = item[4].trim();
-                let checkbox = list_item_text.match(/^\[([ x])\] ([\s\S]+)/);
-                if (checkbox) {
-                    token.list.push({
-                        type: 'task',
-                        checked: checkbox[1] === 'x'
-                    })
-                    list_item_text = checkbox[2]
-                }
-                // todo rewrite list lexing in v2.5
-                list_item_text = list_item_text.replace(/```(?:(\S+)|)\n([\s\S]*?)\n```(\n|$)/g, function(match, lang, code_text) {
-                    let attributes = lang === undefined ? '' : ' class="language-' + lang + '"';
-                    return '<pre><code' + attributes + '>' + code_parse(code_text) + '</code></pre>';
-                })
-                token.list.push(
-                    {type: 'item', text: list_item_text}
-                );
-            }
-            // pop all lv_info from stack
-            while (pop_info = lv_info_stack.pop()) {
-                token.list.push(
-                    {type: 'item-close'},
-                    {type: 'list-close', tag: pop_info.tag}
-                )
-            }
-            tokens.push(token);
-            _text = _text.substring(li[0].length);
-        } else if (code = _text.match(/^```(?:(\S+)|)\n([\s\S]*?)\n```/)) {
-            // code lexing ``` ```
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseBlockCode(str) {
+        let re = str.match(/^```(?:(\S+)|)\n([\s\S]*?)\n```/)
+        if (re) {
             tokens.push({
                 type: 'code',
-                lang: code[1],
-                text: code[2]
+                lang: re[1],
+                text: re[2]
             });
-            _text = _text.substring(code[0].length);
-        } else if (blockquote = _text.match(/^(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/)) {
-            // blockquote lexing >
-            let token = {
-                type: 'blockquote',
-                list: [],
-            };
-            let blockquote_text = '';
-            let blockquote_class = blockquote[1];
-            let items = blockquote[2].split('\n');
-            let max_depth = 1;
-            token.list.push({
-                type: 'open',
-                class: blockquote_class,
-            });
-            for (let i=0; i<items.length; i++) {
-                let item = items[i].match(/^((?:\s*(>|&gt;))+)(?:\s|\[(\S+?)\]\s)(.*)$/);
-                if (item === null) {
-                    blockquote_text += (blockquote_text === '' ? '' : '\n') + items[i].trim();
-                    continue;
-                }
-                let depth = item[1].split(item[2]).reduce(function (x, y) {return (x[y]++ || (x[y] = 1), x);}, {})['']-1;
-                if (depth > max_depth) {
-                    token.list.push({
-                        type: 'item',
-                        text: blockquote_text,
-                    });
-                    blockquote_text = item[4].trim();
-                    blockquote_class = item[3];
-                    for (let j = max_depth; j < depth; j++) {
-                        token.list.push({
-                            type: 'open',
-                            class: blockquote_class
-                        });
-                        blockquote_class = undefined;
-                    }
-                    max_depth = depth;
-                } else {
-                    blockquote_text += '\n' + item[4].trim();
-                }
-            }
-            token.list.push({
-                type: 'item',
-                text: blockquote_text,
-            });
-            for (let i=0; i<max_depth; i++) {
-                token.list.push({type: 'close'});
-            }
-            tokens.push(token);
-            _text = _text.substring(blockquote[0].length);
-        } else if (table = _text.match(/^\|*(.+\|[^\|^\n]+.*?)\|*\n\|*([-:\| ]+?\|[-:\| ]+?.*?)\|*\n/)) {
-            // table lexing | | |
-            _text = _text.substring(table[0].length);
-            token = {
-                type: "table",
-                header: table[1].split('|').map(function (item) { return item.trim() }),
-                align: [],
-                cells: [],
-            }
-            // handle align
-            let align_slice = table[2].split('|');
-            align_slice.forEach(function(item){
-                let align_text = item.trim();
-                let align_left_char = align_text.substring(0, 1);
-                let align_right_char = align_text.substring(align_text.length - 1);
-                if (align_left_char == ':' && align_right_char == ':') {
-                    token.align.push('center');
-                } else if (align_left_char == ':') {
-                    token.align.push('left');
-                } else if (align_right_char == ':') {
-                    token.align.push('right');
-                } else {
-                    token.align.push('');
-                }
-            })
-            // lexing cell
-            let ahead_table;
-            while (ahead_table = _text.match(/^\|*(.+\|[^\|^\n]+.*?)\|*(?:\n|$)/)) {
-                token.cells.push(ahead_table[1].split('|').map(function (item) { return item.trim() }));
-                _text = _text.substring(ahead_table[0].length);
-            }
-            tokens.push(token);
-        } else if (html = _text.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/)) {
-            // html block lexing <></>
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseHTML(str) {
+        let re = str.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/)
+        if (re) {
             tokens.push({
                 type: 'html',
-                html: html[0],
-                tag: html[1]
+                html: re[0],
+                tag: re[1]
             })
-            _text = _text.substring(html[0].length);
-        } else if (paragraph = _text.match(/^.+/)) {
-            // paragraph lexing
-            token = {
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseParagraph(str) {
+        let re = str.match(/^.+(\n*)/)
+        if (re) {
+            let token = {
                 type: 'paragraph',
-                text: paragraph[0]
+                text: re[0].trim(),
+                terminal: re[1].length > 1
             }
-            let last_token = tokens.pop();
+            let last_token = tokens.pop()
             if (last_token) {
-                if (last_token.type === token.type) {
-                    last_token.text += '\n' + token.text;
-                    tokens.push(last_token)
+                if (last_token.type === token.type && !last_token.terminal) {
+                    token.text = last_token.text + '\n' + token.text
+                    tokens.push(token)
                 } else {
                     tokens.push(last_token, token)
                 }
             } else {
                 tokens.push(token)
             }
-            _text = _text.substring(paragraph[0].length)
-        } else if (space = _text.match(/^\n{2,}/)) {
-            // space lexing
-            tokens.push({
-                type: 'space',
-            })
-            _text = _text.substring(space[0].length)
-        } else if (none = _text.match(/^\s+/)){
-            // none
-            _text = _text.substring(none[0].length)
+            return re[0].length
         }
-        continue;
+        return 0
     }
+
+    function parseBlockquote(str) {
+        let re = str.match((/^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/))
+        if (re) {
+            console.log(re)
+            tokens.push({type: 'blockquote-open', class: re[2]})
+            let content = re[3].replace(/\n\s*(>|&gt;)\s*/g, '\n')
+            parse([parseLists, parseBlockquote, parseBlockCode, parseParagraph, skipEmptyLines], content)
+            tokens.push({type: 'blockquote-close'})
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parseTable(str) {
+        let re = str.match(/^\|*(.+\|[^\|^\n]+.*?)\|*\n\|*([-:\| ]+?\|[-:\| ]+?.*?)\|*\n(\|*(?:(?:.+\|[^\|^\n]+.*?)\|*(?:\n|$))*)/)
+        if (re) {
+            let token = {
+                type: "table",
+                header: re[1].split('|').map(item => item.trim()),
+                align: [],
+                cells: [],
+            }
+            // handle align
+            re[2].split('|').forEach((item) => {
+                let align_flag = item.trim();
+                let left_align = align_flag.substring(0, 1) === ':';
+                let right_align = align_flag.substring(align_flag.length - 1) === ':';
+                if (left_align && right_align) {
+                    token.align.push('center');
+                } else if (left_align) {
+                    token.align.push('left');
+                } else if (right_align) {
+                    token.align.push('right');
+                } else {
+                    token.align.push('');
+                }
+            })
+            // lexing cell
+            token.cells = re[3].trim().split('\n').map((item) => item.replace(/^\||\|$/g, '').split('|').map(i => i.trim()))
+            tokens.push(token);
+            return re[0].length
+        }
+        return 0
+    }
+    
+    function skipEmptyLines (str) {
+        let re = str.match(/^\s*\n/)
+        if (re) {
+            return re[0].length
+        }
+        return 0
+    }
+
+    function parse(funcList, str) {
+        while (str) {
+            let i = 0
+            funcList.find(func => {
+                i = func(str)
+                return i !== 0
+            })
+            str = str.substring(i)
+        }
+    }
+
+    parse([parseHeading, parseLineBreak, parseLists, parseBlockCode, parseBlockquote, parseTable, parseHTML, parseParagraph, skipEmptyLines], text)
+
     if (config.debug) {
-        console.log(Object.assign({}, tokens));
+        console.log({...tokens})
     }
+
     // parse
-    let attributes = '';
+    let _html = ''
     while (token = tokens.shift()) {
         switch(token.type) {
             case 'heading':
-                attributes = token.id === undefined ? '' : ' id="' + token.id + '"';
-                _html += '<h' + token.level + attributes + '>' + inline_parse(token.text) + '</h' + token.level + '>';
+                _html += '<h' + token.level + (token.id === undefined ? '' : ' id="' + token.id + '"') + '>' + parseInline(token.text) + '</h' + token.level + '>'
                 break;
             case 'br':
-                _html += '<' + token.tag + '>';
+                _html += '<' + (token.blank?'br':'hr') + ' />'
                 break;
             case 'paragraph':
-                _html += '<p>' + inline_parse(token.text).replace(/\n/g, '<br>') + '</p>';
+                _html += '<p>' + parseInline(token.text).replace(/\n/g, '<br />') + '</p>'
                 break;
-            case 'list':
-                token.list.forEach(function(item) {
-                    switch(item.type) {
-                        case 'list-open':
-                            _html += '<' + item.tag + '>';
-                            break;
-                        case 'list-close':
-                            _html += '</' + item.tag + '>';
-                            break;
-                        case 'item-open':
-                            _html += '<li>';
-                            break;
-                        case 'item-close':
-                            _html += '</li>';
-                            break;
-                        case 'item':
-                            _html += inline_parse(item.text).replace(/\n/g, '<br>');
-                            break;
-                        case 'task':
-                            _html += '<input' + (item.checked ? ' checked' : '') + ' disabled type="checkbox"></input>';
-                            break;
-                    }
-                });
+            case 'list-open':
+                _html += '<' + (token.order?'ol':'ul') + '>'
+                break;
+            case 'list-close':
+                _html += '</' + (token.order?'ol':'ul') + '>'
+                break;
+            case 'list-item-open':
+                _html += '<li>'
+                break;
+            case 'list-item-close':
+                _html += '</li>'
+                break;
+            case 'text':
+                _html += parseInline(token.value);
+                if (token.br && tokens.length > 0 && tokens[0].type === 'text') {
+                    _html += '<br />'
+                }
+                break;
+            case 'task':
+                _html += '<input' + (token.done ? ' checked' : '') + ' disabled type="checkbox"></input>'
                 break;
             case 'code':
-                attributes = token.lang === undefined ? '' : ' class="language-' + token.lang + '"';
-                _html += '<pre><code' + attributes + '>' + code_parse(token.text) + '</code></pre>';
+                _html += '<pre><code' + (token.lang === undefined ? '' : ' class="language-' + token.lang + '"') + '>' + parseCode(token.text) + '</code></pre>'
                 break;
-            case 'blockquote':
-                token.list.forEach(function(item) {
-                    switch(item.type) {
-                        case 'open':
-                            attributes = item.class === undefined ? '' : ' class="' + item.class + '"';
-                            _html += '<blockquote' + attributes + '>';
-                            break;
-                        case 'close':
-                            _html += '</blockquote>';
-                            break;
-                        case 'item':
-                            _html += '<p>' + inline_parse(item.text).replace(/\n/g, '<br>') + '</p>';
-                            break;
-                    }
-                })
+            case 'blockquote-open':
+                _html += '<blockquote' + (token.class === undefined ? '' : ' class="' + token.class + '"') + '>'
+                break;
+            case 'blockquote-close':
+                _html += '</blockquote>'
                 break;
             case 'table':
                 let thead = '<thead><tr>';
-                for (let i=0; i<token.header.length; i++) {
-                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + inline_parse(token.header[i]) + '</th>';
-                }
-                thead += '</tr></thead>';
-                let tbody = '<tbody>';
-                for (let i=0; i<token.cells.length; i++) {
-                    tbody += "<tr>";
-                    for (let j=0; j < token.cells[i].length; j++) {
-                        tbody += '<td' + (token.align[j] ? ' align="' + token.align[j] + '"' : '') + '>' + inline_parse(token.cells[i][j]) + '</td>';
-                    }
-                    tbody += "</tr>";
-                }
+                token.header.forEach((v, i) => {
+                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + parseInline(v) + '</th>'
+                })
+                thead += '</tr></thead>'
+                let tbody = '<tbody>'
+                token.cells.forEach(v => {
+                    tbody += "<tr>"
+                    v.forEach((v2, i) => {
+                        tbody += '<td' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + parseInline(v2) + '</td>'
+                    })
+                    tbody += "</tr>"
+                })
                 tbody += '</tbody>';
-                _html += '<table>' + thead + tbody + '</table>';
+                _html += '<table>' + thead + tbody + '</table>'
                 break;
             case 'html':
-                _html += token.html;
+                _html += token.html
                 break;
         }
     }
-    return _html;
+    return _html
 }
-module.exports = markdown;
+module.exports = markdown

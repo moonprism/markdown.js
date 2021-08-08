@@ -116,7 +116,7 @@ function markdown(text, config = {}) {
     }
 
     function parseBlockCode(str) {
-        let re = str.match(/^```(?:(\S+)|)\n([\s\S]*?)\n```/)
+        let re = str.match(/^ *```(?:(\S+)|)\n([\s\S]*?)\n```/)
         if (re) {
             tokens.push({
                 type: 'code',
@@ -168,10 +168,9 @@ function markdown(text, config = {}) {
     function parseBlockquote(str) {
         let re = str.match((/^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/))
         if (re) {
-            console.log(re)
             tokens.push({type: 'blockquote-open', class: re[2]})
-            let content = re[3].replace(/\n\s*(>|&gt;)\s*/g, '\n')
-            parse([parseLists, parseBlockquote, parseBlockCode, parseParagraph, skipEmptyLines], content)
+            let content = re[3].replace(/\n\s*(>|&gt;) */g, '\n')
+            parse([parseHeading, parseLists, parseBlockquote, parseBlockCode, parseParagraph, skipEmptyLines], content)
             tokens.push({type: 'blockquote-close'})
             return re[0].length
         }

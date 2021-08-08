@@ -4,22 +4,23 @@
 
 [![NPM](https://nodei.co/npm/moonprism-markdown.png)](https://nodei.co/npm/moonprism-markdown/)
 
-a simple markdown parser for JavaScript.
-
-* :star: [example](https://moonprism.github.io/markdown.js/)
+a simple markdown parser for JavaScript. :star: [demo](https://moonprism.github.io/markdown.js/)
 
 ## Syntax
 
-* \``inline code`\`
-* \**italicize*\*
-* \*\***bold**\*\*
-* \[link text](address)
-* \<auto-link>
-* \!\[image alt text](src)
-* \*\*\* or ---
-* \~\~~~strikethrough~~\~\~
-* \ escape inline
-* heading
+* Span Elements
+
+```md
+auto link: <http://example.com/>
+[This link](http://example.net/) has no title attribute.
+![Alt text](/path/to/img.jpg)
+*italicize*
+`inline code`
+**bold**
+~~strikethrough~~
+```
+
+* Headers
 
 ```md
 # h1 {#heading-id}
@@ -27,34 +28,46 @@ a simple markdown parser for JavaScript.
 ### h3
 ```
 
-* list
+* Lists
 
-```md
+````md
 1. Step 1
-    * Item a
-    * Item b
-        1. b1
-    * Item c
+    * requirements
+```sh
+pip3 install --user
+```
+    * build
+        1. make link
+> blockquote, hh
+        2. make build
+    * delete
 2. Step 2
     1. first
 
 - [x] task1
 - [ ] task2
-```
+````
 
-* blockquotes
+* Blockquotes
 
-```md
+````md
 > blockquote
 next line
 
 >[success] blockquote
 >> next block
+>> * list 1
+>> * list 2
+>>   ```
+code in list
 ```
+>
+> next line
+````
 
-* code
+* Code
 
-\```go
+````go
 ```go
 package main
 
@@ -62,9 +75,9 @@ func main() {
     println('mdzz')
 }
 ```
-\```
+````
 
-* table
+* Table
 
 ```md
  left align | right align | center 
@@ -73,7 +86,7 @@ func main() {
  0 | 0 | 0 
  1 | 0 | 1 
 ```
-* html
+* HTML
 
 ```html
 <svg width="99" height="99">
@@ -109,8 +122,6 @@ or download [markdown.min.js](https://moonprism.github.io/markdown.js/markdown.m
 markdown('# hello world', {
     debug: true,
     imageCDN: 'https://cdn.xx/',
-    linkTargetBlank: true,
-    lineParse: function(str) {return str},
-    codeParse: function(str) {return str}
+    linkTargetBlank: true
 })
 ```

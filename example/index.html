@@ -16,6 +16,7 @@
             .in,#mark,#code{ margin-left: 2px; }
         }
         li input {margin-right: 4px !important;position: relative;top: 2px;}
+        blockquote p {margin-bottom: 3px !important;}
     </style>
     <script type="text/javascript" src="./markdown.min.js"></script>
     <script type="text/javascript">
@@ -26,7 +27,7 @@
 <body>
     <h1 class="head-md">markdown.js</h1>
     <textarea id="text"
-        onkeyup="parse()">[❤️github](https://github.com/moonprism/markdown.js)
+        onkeyup="parse()">[❤️ github](https://github.com/moonprism/markdown.js)
 
 ## Install
 ```
@@ -38,7 +39,19 @@ npm install --save moonprism-markdown
 import markdown from 'moonprism-markdown'
 let html = markdown('# hello world')
 ```
-> [🍥blog](https://www.kicoe.com/article/id/23)</textarea>
+* preview(tmux)
+```
+npm run cli
+```
+* test
+```
+npm run test
+```
+
+> blog - <https://www.kicoe.com/>
+> ```
+🍥 ⚓️ 🎮 🍓 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭
+```</textarea>
     <span class="in">显示</span>
     <div id="mark" class="markdown-body"></div>
     <span class="in">生成代码</span>

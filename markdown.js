@@ -15,11 +15,11 @@ function markdown(text, config = {}) {
 
     function parseInline (str) {
         return str
-            .replace(/\\\\/g, '🍕')
+            .replace(/\\\\/g, '（｡>口<｡q')
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
-            .replace(/([^\\]|^)(`+)([^`]+?)\2/g, (match, prefix, _, code) => {
-                return prefix+'<code>'+parseCode(code)+'</code>'
+            .replace(/(``*)(.+?)\1/g, (match, _, code) => { // for nvim js highlight
+                return '<code>'+parseCode(code)+'</code>'
             })
             .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (match, prefix, alt, img) => {
                 if (!img.match(/^(?:\/|http:|https:)/)) {
@@ -39,7 +39,7 @@ function markdown(text, config = {}) {
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
             .replace(/\\([!\[\*\~``#])/g, '$1')
-            .replace(/🍕/g, '\\')
+            .replace(/（｡>口<｡q/g, '\\')
     }
 
     function parseLists(str) {
@@ -116,12 +116,12 @@ function markdown(text, config = {}) {
     }
 
     function parseBlockCode(str) {
-        let re = str.match(/^ *```(?:(\S+)|)\n([\s\S]*?)\n```/)
+        let re = str.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/)
         if (re) {
             tokens.push({
                 type: 'code',
-                lang: re[1],
-                text: re[2]
+                lang: re[2],
+                text: re[3]
             });
             return re[0].length
         }

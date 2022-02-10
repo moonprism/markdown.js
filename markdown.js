@@ -18,7 +18,7 @@ function markdown(text, config = {}) {
             .replace(/\\\\/g, '（｡>口<｡q')
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
-            .replace(/(``*)(.+?)\1/g, (match, _, code) => { // for nvim js highlight
+            .replace(/(``*)\s*(.+?)\s*\1/g, (match, _, code) => { // for nvim js highlight
                 return '<code>'+parseCode(code)+'</code>'
             })
             .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (match, prefix, alt, img) => {

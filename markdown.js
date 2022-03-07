@@ -15,7 +15,7 @@ function markdown(text, config = {}) {
 
     function parseInline (str) {
         return str
-            .replace(/\\\\/g, '（｡>口<｡q')
+            .replace(/\\\\/g, '（｡›口‹｡q')
             .replace(/\\</g, "&lt;")
             .replace(/\\>/g, "&gt;")
             .replace(/(``*)\s*(.+?)\s*\1/g, (match, _, code) => { // for nvim js highlight
@@ -39,7 +39,7 @@ function markdown(text, config = {}) {
             .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
             .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
             .replace(/\\([!\[\*\~``#])/g, '$1')
-            .replace(/（｡>口<｡q/g, '\\')
+            .replace(/（｡›口‹｡q/g, '\\')
     }
 
     function parseLists(str) {

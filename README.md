@@ -1,6 +1,6 @@
 # Markdown.js
 
-[![GitHub file gzip size in bytes](http://img.badgesize.io/moonprism/markdown.js/master/dist/markdown.umd.js?compression=gzip&style=flat-square&color=blue)](https://github.com/moonprism/markdown.js/blob/master/dist/markdown.umd.js)
+![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist%2Fmarkdown.umd.js)
 
 a simple markdown parser for JavaScript. :star: [demo](https://moonprism.github.io/markdown.js/)
 

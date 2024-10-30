@@ -21,13 +21,13 @@ jobs:
           npm run test
           npm run build
       - name: pack
-        run: cp ./dist/* ./example
+        run: mkdir demo && cp ./demo.html ./demo/index.html && cp ./markdown.js ./demo
       - name: deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           ACCESS_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: example
+          FOLDER: demo
   publish:
     needs: build-and-deploy
     runs-on: ubuntu-latest

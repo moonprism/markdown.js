@@ -1,12 +1,14 @@
 {
   "name": "moonprism-markdown",
-  "version": "2.5.4",
+  "version": "2.6.0",
   "description": "a simple markdown parser",
-  "main": "markdown.js",
+  "main": "dist/markdown.umd.js",
+  "module": "dist/markdown.es.js",
   "scripts": {
-    "build": "node_modules/.bin/webpack",
-    "serve": "node_modules/.bin/webpack-dev-server --hot --inline",
-    "test": "ava test/test.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "",
     "cli": "node test/cli.js"
   },
   "repository": {
@@ -23,18 +25,6 @@
   },
   "homepage": "https://github.com/moonprism/markdown.js#readme",
   "devDependencies": {
-    "ava": "^3.15.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-es2015": "^6.24.1",
-    "cli-highlight": "^2.1.11",
-    "js-beautify": "^1.14.0",
-    "webpack": "^4.42.0",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
+    "vite": "^5.4.9"
   }
 }

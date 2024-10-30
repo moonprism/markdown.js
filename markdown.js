@@ -1,304 +1,323 @@
-function markdown(text, config = {}) {
-    text = text.replace(/(\r\n|\r)/g, '\n').replace(/\t/g, '  ');
-    var tokens = [];
+/**
+ * @typedef {Object} Config
+ * @property {string} imageCdnUrl - 图片CDN地址
+ * @property {boolean} isOpenInNewTab - 是否在新标签中打开链接
+ * @property {boolean} debug - 是否启用调试模式
+ */
 
-    const img_cdn = config.imageCDN ? config.imageCDN : '';
-    const link_attr = config.linkTargetBlank ? ' target="_blank" rel="noopener"' : '';
+/**
+ *
+ * @param {string} md 要解析的markdown文本
+ * @param {Config} conf -配置对象
+ * @returns
+ */
+const markdown = (md, conf = {}) => {
+  md = md.replace(/(\r\n|\r)/g, "\n").replace(/\t/g, "  ");
 
-    function parseCode (str) {
-        return str
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/&lt;(\/?)em&gt;/g, '<$1em>')
+  // 最终解析文本
+  let html = "";
+  function buildHtml(str) {
+    if (conf.debug) {
+      console.log(str);
     }
+    html += str;
+  }
 
-    function parseInline (str) {
-        return str
-            .replace(/\\\\/g, '（｡›口‹｡q')
-            .replace(/\\</g, "&lt;")
-            .replace(/\\>/g, "&gt;")
-            .replace(/(``*)\s*(.+?)\s*\1/g, (match, _, code) => { // for nvim js highlight
-                return '<code>'+parseCode(code)+'</code>'
-            })
-            .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (match, prefix, alt, img) => {
-                if (!img.match(/^(?:\/|http:|https:)/)) {
-                    img = img_cdn + img
-                }
-                return prefix+'<img alt="'+alt+'" src="'+img+'">'
-            })
-            .replace(/([^\\]|^)\[(.*?)\]\((#[^<]*?)\)/g, '$1<a href="$3">$2</a>')
-            .replace(/([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g, '$1<a' + link_attr + ' href="$3">$2</a>')
-            .replace(/([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g, (match, prefix, href) => {
-                if (href.indexOf('<em>') !== -1){
-                    return match
-                }
-                return prefix+'<a '+link_attr+' href="'+href+'">'+href+'</a>'
-            })
-            .replace(/([^\\]|^)\*\*(.+?)\*\*/g, '$1<b>$2</b>')
-            .replace(/([^\\]|^)\*(.+?)\*/g, '$1<i>$2</i>')
-            .replace(/([^\\]|^)~~(.+?)~~/g, '$1<s>$2</s>')
-            .replace(/\\([!\[\*\~``#])/g, '$1')
-            .replace(/（｡›口‹｡q/g, '\\')
-    }
+  const link_attribute = conf.isOpenInNewTab
+    ? ' target="_blank" rel="noopener"'
+    : "";
 
-    function parseLists(str) {
-        let re = str.match(/^( *)(\*|\-|\d+\.) .+(\n.+|\n\n  .+)*/)
-        if (re) {
-            let order = re[2] !== '*' && re[2] !== '-'
-            let li = [];
-            if (re[1] !== '') {
-                li = re[0].split(new RegExp('(?:\n|^)'+re[1]+'(?:\\*|\\-|\\d+\\.) '))
-            } else {
-                li = re[0].split(/(?:^|\n)(?:\*|\-|\d+\.) /g)
-            }
-            li.shift()
+  // 转义code中的特殊字符
+  function escapeCode(str) {
+    return str
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/&lt;(\/?)em&gt;/g, "<$1em>");
+  }
 
-            tokens.push({type: 'list-open', order})
-
-            li.forEach(s => {
-                tokens.push({type: 'list-item-open'})
-                s = s.trim();
-                if (s.startsWith('[ ]')) {
-                    s = s.substr(3)
-                    tokens.push({type: 'task', done: false})
-                } else if (s.startsWith('[x]')) {
-                    s = s.substr(3)
-                    tokens.push({type: 'task', done: true})
-                }
-                if (s.indexOf('\n') != -1) {
-                    if (s.indexOf('\n\n  ')) {} //todo
-                    parse([parseHeading, parseLists, parseBlockCode, parseBlockquote, parseText, skipEmptyLines], s)
-                } else {
-                    tokens.push({type: 'text', value: s, br: false})
-                }
-                tokens.push({type: 'list-item-close'})
-            })
-            tokens.push({type: 'list-close', order})
-            return re[0].length
+  // 解析所有行内元素
+  function parseInline(str) {
+    return str
+      .replace(/\\\\/g, "🔮-S")
+      .replace(/\\</g, "&lt;")
+      .replace(/\\>/g, "&gt;")
+      .replace(
+        /(``*)\s*(.+?)\s*\1/g,
+        (_, backticks, s) => `<code>${escapeCode(s)}</code>`
+      )
+      .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (_, prefix, alt, src) => {
+        const cdn =
+          conf.imageCdnUrl && !src.match(/^(?:\/|http:|https:)/)
+            ? conf.imageCdnUrl
+            : "";
+        return `${prefix}<img alt="${alt}" src="${cdn}${src}">`;
+      })
+      .replace(/([^\\]|^)\[(.*?)\]\((#[^<]*?)\)/g, '$1<a href="$3">$2</a>')
+      .replace(
+        /([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g,
+        `$1<a${link_attribute} href="$3">$2</a>`
+      )
+      .replace(
+        /([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g,
+        (match, prefix, href) => {
+          if (href.indexOf("<em>") !== -1) {
+            return match;
+          }
+          return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
         }
-        return 0
-    }
+      )
+      .replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>")
+      .replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>")
+      .replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>")
+      .replace(/\\([!\[\*\~``#])/g, "$1")
+      .replace(/\🔮-S/g, "\\");
+  }
 
-    function parseText(str) {
-        let re = str.match(/^\s*(.+)(\n|$)/)
-        if (re) {
-            tokens.push({type:'text', value: re[1], br: true})
-            return re[0].length
-        }
-        return 0
+  function parseLists(str) {
+    const matchResult = str.match(/^( *)(\*|\-|\d+\.) .+(?:\n.+|\n\n  .+)*/);
+    if (!matchResult) {
+      return 0;
     }
+    const [match, leadingSpace, signChar] = matchResult;
+    const hasOrder = ["*", "-"].includes(signChar);
+    /**
+     * @type {string[]}
+     */
+    let li = [];
+    if (leadingSpace !== "") {
+      li = match.split(
+        new RegExp(`(?:\n|^)${leadingSpace}(?:\\*|\\-|\\d+\\.) `)
+      );
+    } else {
+      li = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
+    }
+    li.shift();
 
-    function parseHeading(str) {
-        let re = str.match(/^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/)
-        if (re) {
-            tokens.push({
-                type: 'heading',
-                level: re[1].length,
-                id: re[3],
-                text: re[2]
-            });
-            return re[0].length
-        }
-        return 0
-    }
+    buildHtml(`<${hasOrder ? "ol" : "ul"}>`);
 
-    function parseLineBreak(str) {
-        let re = str.match(/^([*-]){3,}(?:\n+|$)/)
-        if (re) {
-            tokens.push({
-                type: 'br',
-                blank: re[1] === '*',
-            });
-            return re[0].length
-        }
-        return 0
-    }
+    li.forEach((s) => {
+      buildHtml("<li>");
+      s = s.trim();
+      const taskMatchResult = s.match(/^\[(\s|x)\]/);
+      if (taskMatchResult) {
+        s = s.substring(3);
+        const [, taskSign] = taskMatchResult;
+        buildHtml(
+          `<input disabled ${
+            taskSign === "x" ? "checked" : ""
+          } type="checkbox"></input>`
+        );
+      }
+      if (s.indexOf("\n") != -1) {
+        mark(
+          [
+            parseHeading,
+            parseLists,
+            parseBlockCode,
+            parseBlockquote,
+            parseText,
+            skipEmptyLines,
+          ],
+          s
+        );
+      } else {
+        buildHtml(parseInline(s));
+      }
+      buildHtml("</li>");
+    });
+    buildHtml(`</${hasOrder ? "ol" : "ul"}>`);
+    return match.length;
+  }
 
-    function parseBlockCode(str) {
-        let re = str.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/)
-        if (re) {
-            tokens.push({
-                type: 'code',
-                lang: re[2],
-                text: re[3]
-            });
-            return re[0].length
-        }
-        return 0
+  function parseText(str) {
+    const matchResult = str.match(/^\s*(.+)(\n|$)/);
+    if (!matchResult) {
+      return 0;
     }
+    const [match, text] = matchResult;
+    buildHtml(parseInline(text));
+    return match.length;
+  }
 
-    function parseHTML(str) {
-        let re = str.match(/^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/)
-        if (re) {
-            tokens.push({
-                type: 'html',
-                html: re[0],
-                tag: re[1]
-            })
-            return re[0].length
-        }
-        return 0
+  function parseHeading(str) {
+    const matchResult = str.match(
+      /^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/
+    );
+    if (!matchResult) {
+      return 0;
     }
+    const [match, signs, text, id] = matchResult;
+    buildHtml(`<h${signs.length}>${parseInline(text)}</h${signs.length}>`);
+    return match.length;
+  }
 
-    function parseParagraph(str) {
-        let re = str.match(/^.+(\n*)/)
-        if (re) {
-            let token = {
-                type: 'paragraph',
-                text: re[0].trim(),
-                terminal: re[1].length > 1
-            }
-            let last_token = tokens.pop()
-            if (last_token) {
-                if (last_token.type === token.type && !last_token.terminal) {
-                    token.text = last_token.text + '\n' + token.text
-                    tokens.push(token)
-                } else {
-                    tokens.push(last_token, token)
-                }
-            } else {
-                tokens.push(token)
-            }
-            return re[0].length
-        }
-        return 0
+  function parseLineBreak(str) {
+    const matchResult = str.match(/^([*-]){3,}(?:\n+|$)/);
+    if (!matchResult) {
+      return 0;
     }
+    const [match, sign] = matchResult;
+    buildHtml(`<${sign === "*" ? "br" : "hr"} />`);
+    return match.length;
+  }
 
-    function parseBlockquote(str) {
-        let re = str.match((/^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/))
-        if (re) {
-            tokens.push({type: 'blockquote-open', class: re[2]})
-            let content = re[3].replace(/\n\s*(>|&gt;) */g, '\n')
-            parse([parseHeading, parseLists, parseBlockquote, parseBlockCode, parseParagraph, skipEmptyLines], content)
-            tokens.push({type: 'blockquote-close'})
-            return re[0].length
-        }
-        return 0
+  function parseBlockCode(str) {
+    const matchResult = str.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/);
+    if (!matchResult) {
+      return 0;
     }
+    const [match, , lang, text] = matchResult;
+    buildHtml(
+      `<pre><code${
+        lang === undefined ? "" : ` class="language-'${lang}"`
+      }>${escapeCode(text)}</code></pre>`
+    );
+    return match.length;
+  }
 
-    function parseTable(str) {
-        let re = str.match(/^\|*(.+\|[^\|^\n]+.*?)\|*\n\|*([-:\| ]+?\|[-:\| ]+?.*?)\|*\n(\|*(?:(?:.+\|[^\|^\n]+.*?)\|*(?:\n|$))*)/)
-        if (re) {
-            let token = {
-                type: "table",
-                header: re[1].split('|').map(item => item.trim()),
-                align: [],
-                cells: [],
-            }
-            // handle align
-            re[2].split('|').forEach((item) => {
-                let align_flag = item.trim();
-                let left_align = align_flag.substring(0, 1) === ':';
-                let right_align = align_flag.substring(align_flag.length - 1) === ':';
-                if (left_align && right_align) {
-                    token.align.push('center');
-                } else if (left_align) {
-                    token.align.push('left');
-                } else if (right_align) {
-                    token.align.push('right');
-                } else {
-                    token.align.push('');
-                }
-            })
-            // lexing cell
-            token.cells = re[3].trim().split('\n').map((item) => item.replace(/^\||\|$/g, '').split('|').map(i => i.trim()))
-            tokens.push(token);
-            return re[0].length
-        }
-        return 0
+  function parseHTML(str) {
+    const matchResult = str.match(
+      /^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/
+    );
+    if (!matchResult) {
+      return 0;
     }
-    
-    function skipEmptyLines (str) {
-        let re = str.match(/^\s*\n/)
-        if (re) {
-            return re[0].length
-        }
-        return 0
-    }
+    const [match, tag] = matchResult;
+    buildHtml(match);
+    return match.length;
+  }
 
-    function parse(funcList, str) {
-        while (str) {
-            let i = 0
-            funcList.find(func => {
-                i = func(str)
-                return i !== 0
-            })
-            str = str.substring(i)
-        }
+  function parseParagraph(str) {
+    const matchResult = str.match(/^.+\n*/);
+    if (!matchResult) {
+      return 0;
     }
+    const [match] = matchResult;
+    buildHtml(`<p>${parseInline(match)}</p>`);
+    return match.length;
+  }
 
-    parse([parseHeading, parseLineBreak, parseLists, parseBlockCode, parseBlockquote, parseTable, parseHTML, parseParagraph, skipEmptyLines], text)
-
-    if (config.debug) {
-        console.log({...tokens})
+  function parseBlockquote(str) {
+    const matchResult = str.match(
+      /^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/
+    );
+    if (!matchResult) {
+      return 0;
     }
+    const [match, , className, content] = matchResult;
+    buildHtml(
+      `<blockquote${className === undefined ? "" : ` class="${className}"`}>`
+    );
+    mark(
+      [
+        parseHeading,
+        parseLists,
+        parseBlockquote,
+        parseBlockCode,
+        parseParagraph,
+        skipEmptyLines,
+      ],
+      content.replace(/\n\s*(>|&gt;) */g, "\n")
+    );
+    buildHtml("</blockquote>");
+    return match.length;
+  }
 
-    // parse
-    let _html = ''
-    while (token = tokens.shift()) {
-        switch(token.type) {
-            case 'heading':
-                _html += '<h' + token.level + (token.id === undefined ? '' : ' id="' + token.id + '"') + '>' + parseInline(token.text) + '</h' + token.level + '>'
-                break;
-            case 'br':
-                _html += '<' + (token.blank?'br':'hr') + ' />'
-                break;
-            case 'paragraph':
-                _html += '<p>' + parseInline(token.text).replace(/\n/g, '<br />') + '</p>'
-                break;
-            case 'list-open':
-                _html += '<' + (token.order?'ol':'ul') + '>'
-                break;
-            case 'list-close':
-                _html += '</' + (token.order?'ol':'ul') + '>'
-                break;
-            case 'list-item-open':
-                _html += '<li>'
-                break;
-            case 'list-item-close':
-                _html += '</li>'
-                break;
-            case 'text':
-                _html += parseInline(token.value);
-                if (token.br && tokens.length > 0 && tokens[0].type === 'text') {
-                    _html += '<br />'
-                }
-                break;
-            case 'task':
-                _html += '<input' + (token.done ? ' checked' : '') + ' disabled type="checkbox"></input>'
-                break;
-            case 'code':
-                _html += '<pre><code' + (token.lang === undefined ? '' : ' class="language-' + token.lang + '"') + '>' + parseCode(token.text) + '</code></pre>'
-                break;
-            case 'blockquote-open':
-                _html += '<blockquote' + (token.class === undefined ? '' : ' class="' + token.class + '"') + '>'
-                break;
-            case 'blockquote-close':
-                _html += '</blockquote>'
-                break;
-            case 'table':
-                let thead = '<thead><tr>';
-                token.header.forEach((v, i) => {
-                    thead += '<th' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + parseInline(v) + '</th>'
-                })
-                thead += '</tr></thead>'
-                let tbody = '<tbody>'
-                token.cells.forEach(v => {
-                    tbody += "<tr>"
-                    v.forEach((v2, i) => {
-                        tbody += '<td' + (token.align[i] ? ' align="' + token.align[i] + '"' : '') + '>' + parseInline(v2) + '</td>'
-                    })
-                    tbody += "</tr>"
-                })
-                tbody += '</tbody>';
-                _html += '<table>' + thead + tbody + '</table>'
-                break;
-            case 'html':
-                _html += token.html
-                break;
-        }
+  function parseTable(str) {
+    const matchResult = str.match(
+      /^\|*(.+\|[^\|^\n]+.*?)\|*\n\|*([-:\| ]+?\|[-:\| ]+?.*?)\|*\n(\|*(?:(?:.+\|[^\|^\n]+.*?)\|*(?:\n|$))*)/
+    );
+    if (!matchResult) {
+      return 0;
     }
-    return _html
-}
-module.exports = markdown
+    const [match, header, align, cells] = matchResult;
+
+    /**
+     * 表格的对齐信息
+     * @type {('left'|'center'|right)[]}
+     */
+    let aligns = [];
+    align.split("|").forEach((s) => {
+      s = s.trim();
+      const leftSign = s.startsWith(":");
+      const rightSign = s.endsWith(":");
+      if (leftSign && rightSign) {
+        aligns.push("center");
+      } else if (rightSign) {
+        aligns.push("right");
+      } else {
+        aligns.push("left");
+      }
+    });
+
+    buildHtml("<table><thead><tr>");
+    header
+      .split("|")
+      .map((item) => item.trim())
+      .forEach((v, i) => {
+        buildHtml(`<th align="${aligns[i]}">${parseInline(v)}</th>`);
+      });
+    buildHtml("</tr></thead>");
+    cells
+      .trim()
+      .split("\n")
+      .forEach((tr) => {
+        buildHtml("<tr>");
+        tr.replace(/^\||\|$/g, "")
+          .split("|")
+          .forEach((td, i) => {
+            buildHtml(`<td align="${aligns[i]}">${parseInline(td)}</td>`);
+          });
+        buildHtml("</tr>");
+      });
+    buildHtml("</table>");
+    return match.length;
+  }
+
+  function skipEmptyLines(str) {
+    const matchResult = str.match(/^\s*\n/);
+    if (!matchResult) {
+      return 0;
+    }
+    return matchResult[0].length;
+  }
+
+  function mark(funcList, str) {
+    while (str) {
+      let i = 0;
+      funcList.find((func) => {
+        i = func(str);
+        return i !== 0;
+      });
+      str = str.substring(i);
+    }
+  }
+
+  mark(
+    [
+      parseHeading,
+      parseLineBreak,
+      parseLists,
+      parseBlockCode,
+      parseBlockquote,
+      parseTable,
+      parseParagraph,
+      parseHTML,
+      skipEmptyLines,
+    ],
+    md
+  );
+
+  // 合并相邻段落，虽然效率差，但少很多代码
+  html = html.replace(/(\s+)<\/p><p>/g, (_, blanks) => {
+    if (blanks.split("\n").length === 2) {
+      return " ";
+    }
+    return "</p><p>";
+  });
+  html = html.replace(/\s+<\/p>/g, '</p>')
+
+  return html;
+};
+export default markdown;

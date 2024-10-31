@@ -5,8 +5,8 @@ const B = ($, p = {}) => {
   function c(n) {
     p.debug && console.log(n), u += n;
   }
-  const x = p.isOpenInNewTab ? ' target="_blank" rel="noopener"' : "";
-  function E(n) {
+  const E = p.isOpenInNewTab ? ' target="_blank" rel="noopener"' : "";
+  function m(n) {
     return n.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
   const _ = ["🔮", "🧙", "🌟", "🃏"];
@@ -16,15 +16,15 @@ const B = ($, p = {}) => {
   function h(n) {
     return n.replace(/\\\\/g, "🌻-S").replace(/\\</g, "&lt;").replace(/\\>/g, "&gt;").replace(
       /(``*)\s*(.+?)\s*\1/g,
-      (t, e, r) => `<code>${E(r)}</code>`
+      (t, e, r) => `<code>${m(r)}</code>`
     ).replace(/([^\\]|^)!\[([^<>]*?)\]\(([^<>]*?)\)/g, (t, e, r, s) => {
       if (f(r) || f(s))
         return t;
       const o = p.imageCdnUrl && !s.match(/^(?:\/|https?)/) ? p.imageCdnUrl : "";
       return `${e}<img alt="${r}" src="${o}${s}">`;
-    }).replace(/([^\\]|^)\[(.*?)\]\(([^<>]*?)\)/g, (t, e, r, s) => f(s) ? t : `${e}<a${x} href="${s}">${r}</a>`).replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (t, e, r) => f(r) ? t : `${e}<a${x} href="${r}">${r}</a>`).replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>").replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>").replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>").replace(/\\([!\[\*\~``#])/g, "$1").replace(/\🌻-S/g, "\\");
+    }).replace(/([^\\]|^)\[(.*?)\]\(([^<>]*?)\)/g, (t, e, r, s) => f(s) ? t : `${e}<a${E} href="${s}">${r}</a>`).replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (t, e, r) => f(r) ? m(t) : `${e}<a${E} href="${r}">${r}</a>`).replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>").replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>").replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>").replace(/\\([!\[\*\~``#])/g, "$1").replace(/\🌻-S/g, "\\");
   }
-  function m(n) {
+  function d(n) {
     const t = n.match(/^( *)(\*|\-|\d+\.) .+(?:\n.+|\n\n  .+)*/);
     if (!t)
       return 0;
@@ -44,14 +44,14 @@ const B = ($, p = {}) => {
         );
       }
       a.indexOf(`
-`) != -1 ? R(
+`) != -1 ? x(
         [
-          d,
-          m,
           b,
+          d,
           k,
+          S,
           q,
-          S
+          R
         ],
         a
       ) : c(h(a)), c("</li>");
@@ -64,7 +64,7 @@ const B = ($, p = {}) => {
     const [e, r] = t;
     return c(h(r)), e.length;
   }
-  function d(n) {
+  function b(n) {
     const t = n.match(
       /^(#{1,6})\s+(.*?)(?:\n+|$)/
     );
@@ -80,13 +80,13 @@ const B = ($, p = {}) => {
     const [e, r] = t;
     return c(`<${r === "*" ? "br" : "hr"} />`), e.length;
   }
-  function b(n) {
+  function k(n) {
     const t = n.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/);
     if (!t)
       return 0;
     const [e, , r, s] = t;
     return c(
-      `<pre><code${r === void 0 ? "" : ` class="language-'${r}"`}>${E(s)}</code></pre>`
+      `<pre><code${r === void 0 ? "" : ` class="language-'${r}"`}>${m(s)}</code></pre>`
     ), e.length;
   }
   function L(n) {
@@ -105,7 +105,7 @@ const B = ($, p = {}) => {
     const [e] = t;
     return c(`<p>${h(e)}</p>`), e.length;
   }
-  function k(n) {
+  function S(n) {
     const t = n.match(
       /^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/
     );
@@ -114,14 +114,14 @@ const B = ($, p = {}) => {
     const [e, , r, s] = t;
     return c(
       `<blockquote${r === void 0 ? "" : ` class="${r}"`}>`
-    ), R(
+    ), x(
       [
-        d,
-        m,
-        k,
         b,
+        d,
+        S,
+        k,
         C,
-        S
+        R
       ],
       s.replace(/\n\s*(>|&gt;) */g, `
 `)
@@ -148,27 +148,27 @@ const B = ($, p = {}) => {
       }), c("</tr>");
     }), c("</table>"), e.length;
   }
-  function S(n) {
+  function R(n) {
     const t = n.match(/^\s*\n/);
     return t ? t[0].length : 0;
   }
-  function R(n, t) {
+  function x(n, t) {
     for (; t; ) {
       let e = 0;
       n.find((r) => (e = r(t), e !== 0)), t = t.substring(e);
     }
   }
-  return R(
+  return x(
     [
-      d,
-      w,
-      m,
       b,
+      w,
+      d,
       k,
+      S,
       T,
       C,
       L,
-      S
+      R
     ],
     $
   ), u = u.replace(/(\s+)<\/p><p>/g, (n, t) => t.split(`

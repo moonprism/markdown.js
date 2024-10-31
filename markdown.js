@@ -74,7 +74,7 @@ const markdown = (md, conf = {}) => {
       })
       .replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (match, prefix, href) => {
         if (foresee(href)) {
-          return match;
+          return escapeCode(match);
         }
         return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
       })

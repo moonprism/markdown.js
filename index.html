@@ -1,71 +1,36 @@
-<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>markdown.js - demo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="flex flex-col items-center">
-    <div class="w-full max-w-[750px] space-y-4">
-      <h1 class="text-3xl mt-7 text-center">markdown.js</h1>
-      <textarea class="w-full h-[300px] border p-3" id="text">
-<https://github.com/moonprism/markdown.js>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <body>
+    <script type="module">
+      import { createSignal, createMemo } from "https://cdn.skypack.dev/solid-js";
+      import { render } from "https://cdn.skypack.dev/solid-js/web";
+      import html from "https://cdn.skypack.dev/solid-js/html";
 
-* 无序列表
-  - 测试
-    > tailwind cdn 导致有些样式不生效
-  - 深层
-* 安装
-  ```
-npm i moonprism-markdown
-```
+      import markdown from "./markdown.js";
 
-~~删除文本~~
-</textarea
-      >
-      <div><span class="bg-lime-400 p-1 text-sm">显示</span></div>
-      <div id="mark" class="markdown-body"></div>
-      <div><span class="bg-fuchsia-400 p-1 text-sm">生成代码</span></div>
-      <div id="code" class="border px-4 py-3"></div>
-    </div>
-    <hr class="mb-10" />
+      const App = () => {
+        const [md, setMd] = createSignal("");
+        const htmlMemo = createMemo(() => markdown(md(), {debug: true}));
+        setMd("# hello world\n");
+
+        return html` <div class="flex flex-col items-center">
+          <div class="w-full max-w-[750px] space-y-4 m-10">
+            <textarea
+              class="w-full h-[300px] border p-3"
+              value="${md()}"
+              onInput="${(e) => setMd(e.target.value)}"
+            ></textarea>
+            <div class="markdown-body" innerHTML=${() => htmlMemo()}></div>
+            <div class="border p-3">${() => htmlMemo()}</div>
+          </div>
+        </div>`;
+      };
+      render(App, document.body);
+    </script>
   </body>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.7.0/github-markdown.min.css"
   />
-  <script type="module">
-    import markdown from "./markdown.js";
-
-    var $ = function (id) {
-      return document.getElementById(id);
-    };
-    function parse() {
-      $("code").innerText = $("mark").innerHTML = markdown($("text").value, {
-        debug: true,
-      });
-    }
-    parse();
-    document.querySelector("textarea").addEventListener("keyup", () => {
-      parse();
-    });
-    $("text").focus();
-    document.querySelector("textarea").addEventListener(
-      "keydown",
-      function (e) {
-        if (e.keyCode === 9) {
-          const start = this.selectionStart;
-          const end = this.selectionEnd;
-          const target = e.target;
-          const value = target.value;
-          target.value =
-            value.substring(0, start) + "\t" + value.substring(end);
-          this.selectionStart = this.selectionEnd = start + 1;
-          e.preventDefault();
-        }
-      },
-      false
-    );
-  </script>
+  <style>ol{list-style:disc}ul{list-style: decimal}</style>
 </html>

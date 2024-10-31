@@ -32,46 +32,57 @@ const markdown = (md, conf = {}) => {
     return str
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/&lt;(\/?)em&gt;/g, "<$1em>");
+      .replace(/"/g, "&quot;");
+  }
+
+  // 查询结果关键字的标记符号(为了节省大小提取字段都没校验
+  // 预见4
+  // 水晶球 (🔮) - U+1F52E
+  // 占卜者 (🧙) - U+1F9D9
+  // 星星 (🌟) - U+1F31F
+  // 塔罗牌 (🃏) - U+1F0CF
+  const foreseeSigns = ["🔮", "🧙", "🌟", "🃏"];
+  function foresee(str) {
+    return foreseeSigns.some((sign) => str.includes(sign));
   }
 
   // 解析所有行内元素
   function parseInline(str) {
     return str
-      .replace(/\\\\/g, "🔮-S")
+      .replace(/\\\\/g, "🌻-S")
       .replace(/\\</g, "&lt;")
       .replace(/\\>/g, "&gt;")
       .replace(
         /(``*)\s*(.+?)\s*\1/g,
-        (_, backticks, s) => `<code>${escapeCode(s)}</code>`
+        (_, _backticks, s) => `<code>${escapeCode(s)}</code>`
       )
-      .replace(/([^\\]|^)!\[([^<]*?)\]\(([^<]*?)\)/g, (_, prefix, alt, src) => {
+      .replace(/([^\\]|^)!\[([^<>]*?)\]\(([^<>]*?)\)/g, (match, prefix, alt, src) => {
+        if (foresee(alt) || foresee(src)) {
+          return match;
+        }
         const cdn =
-          conf.imageCdnUrl && !src.match(/^(?:\/|http:|https:)/)
+          conf.imageCdnUrl && !src.match(/^(?:\/|https?)/)
             ? conf.imageCdnUrl
             : "";
         return `${prefix}<img alt="${alt}" src="${cdn}${src}">`;
       })
-      .replace(/([^\\]|^)\[(.*?)\]\((#[^<]*?)\)/g, '$1<a href="$3">$2</a>')
-      .replace(
-        /([^\\]|^)\[(.*?)\]\(([^<]*?)\)/g,
-        `$1<a${link_attribute} href="$3">$2</a>`
-      )
-      .replace(
-        /([^\\]|^)(?:<|&lt;)([a-zA-Z]+:.*)(?:>|&gt;)/g,
-        (match, prefix, href) => {
-          if (href.indexOf("<em>") !== -1) {
-            return match;
-          }
-          return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
+      .replace(/([^\\]|^)\[(.*?)\]\(([^<>]*?)\)/g, (match, prefix, s, href) => {
+        if (foresee(href)) {
+          return match;
         }
-      )
+        return `${prefix}<a${link_attribute} href="${href}">${s}</a>`;
+      })
+      .replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (match, prefix, href) => {
+        if (foresee(href)) {
+          return match;
+        }
+        return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
+      })
       .replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>")
       .replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>")
       .replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>")
       .replace(/\\([!\[\*\~``#])/g, "$1")
-      .replace(/\🔮-S/g, "\\");
+      .replace(/\🌻-S/g, "\\");
   }
 
   function parseLists(str) {
@@ -142,12 +153,12 @@ const markdown = (md, conf = {}) => {
 
   function parseHeading(str) {
     const matchResult = str.match(
-      /^(#{1,6})\s+(.*?)(?:\s*|\s*{#([a-zA-Z]\S*)})(?:\n+|$)/
+      /^(#{1,6})\s+(.*?)(?:\n+|$)/
     );
     if (!matchResult) {
       return 0;
     }
-    const [match, signs, text, id] = matchResult;
+    const [match, signs, text] = matchResult;
     buildHtml(`<h${signs.length}>${parseInline(text)}</h${signs.length}>`);
     return match.length;
   }
@@ -309,14 +320,14 @@ const markdown = (md, conf = {}) => {
     md
   );
 
-  // 合并相邻段落，虽然效率差，但少很多代码
+  // 合并相邻段落，虽然效率差，但比之前`look back`少很多代码呀
   html = html.replace(/(\s+)<\/p><p>/g, (_, blanks) => {
     if (blanks.split("\n").length === 2) {
       return " ";
     }
     return "</p><p>";
   });
-  html = html.replace(/\s+<\/p>/g, '</p>')
+  html = html.replace(/\s+<\/p>/g, "</p>");
 
   return html;
 };

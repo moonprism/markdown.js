@@ -1,8 +1,7 @@
-# Markdown.js
+a simple markdown parser for JavaScript. :star: [demo](https://moonprism.github.io/markdown.js/)
+
 
 ![GitHub file size in bytes](https://img.shields.io/github/size/moonprism/markdown.js/dist%2Fmarkdown.umd.js)
-
-a simple markdown parser for JavaScript. :star: [demo](https://moonprism.github.io/markdown.js/)
 
 ## Install
 

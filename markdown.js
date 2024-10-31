@@ -35,7 +35,7 @@ const markdown = (md, conf = {}) => {
       .replace(/"/g, "&quot;");
   }
 
-  // 查询结果关键字的标记符号(为了节省大小提取字段都没校验
+  // 查询关键字的标记符号(带有以下符号的某些行内元素不会被解析
   // 预见4
   // 水晶球 (🔮) - U+1F52E
   // 占卜者 (🧙) - U+1F9D9
@@ -74,7 +74,7 @@ const markdown = (md, conf = {}) => {
       })
       .replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (match, prefix, href) => {
         if (foresee(href)) {
-          return match;
+          return escapeCode(match);
         }
         return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
       })
@@ -91,36 +91,40 @@ const markdown = (md, conf = {}) => {
       return 0;
     }
     const [match, leadingSpace, signChar] = matchResult;
-    const hasOrder = ["*", "-"].includes(signChar);
+    const orderTag = ["*", "-"].includes(signChar) ? "ol" : "ul";
     /**
      * @type {string[]}
      */
-    let li = [];
+    let lis = [];
     if (leadingSpace !== "") {
-      li = match.split(
+      lis = match.split(
         new RegExp(`(?:\n|^)${leadingSpace}(?:\\*|\\-|\\d+\\.) `)
       );
     } else {
-      li = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
+      lis = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
     }
-    li.shift();
+    lis.shift();
 
-    buildHtml(`<${hasOrder ? "ol" : "ul"}>`);
+    buildHtml(`<${orderTag}>`);
 
-    li.forEach((s) => {
+    lis.forEach((s) => {
       buildHtml("<li>");
       s = s.trim();
-      const taskMatchResult = s.match(/^\[(\s|x)\]/);
+      const taskMatchResult = s.match(/^\[(\s|x)\] /);
       if (taskMatchResult) {
-        s = s.substring(3);
+        s = s.substring(4);
         const [, taskSign] = taskMatchResult;
         buildHtml(
           `<input disabled ${
             taskSign === "x" ? "checked" : ""
-          } type="checkbox"></input>`
+          } type="checkbox"></input> `
         );
       }
-      if (s.indexOf("\n") != -1) {
+      if (s.includes("\n")) {
+        // TODO
+        // 下一行的起始空格数为当前li+2以上才递归解析
+        // 使用 return match.length - 剩下字符串长度返回本次解析终点
+        // 但这个项目只是用在个人博客里一个很小的功能上，只要自己的markdown写规范就不会有这类问题
         mark(
           [
             parseHeading,
@@ -137,7 +141,7 @@ const markdown = (md, conf = {}) => {
       }
       buildHtml("</li>");
     });
-    buildHtml(`</${hasOrder ? "ol" : "ul"}>`);
+    buildHtml(`</${orderTag}>`);
     return match.length;
   }
 
@@ -251,11 +255,9 @@ const markdown = (md, conf = {}) => {
     let aligns = [];
     align.split("|").forEach((s) => {
       s = s.trim();
-      const leftSign = s.startsWith(":");
-      const rightSign = s.endsWith(":");
-      if (leftSign && rightSign) {
+      if (s.startsWith(":") && s.endsWith(":")) {
         aligns.push("center");
-      } else if (rightSign) {
+      } else if (s.endsWith(":")) {
         aligns.push("right");
       } else {
         aligns.push("left");
@@ -265,9 +267,8 @@ const markdown = (md, conf = {}) => {
     buildHtml("<table><thead><tr>");
     header
       .split("|")
-      .map((item) => item.trim())
       .forEach((v, i) => {
-        buildHtml(`<th align="${aligns[i]}">${parseInline(v)}</th>`);
+        buildHtml(`<th align="${aligns[i]}">${parseInline(v.trim())}</th>`);
       });
     buildHtml("</tr></thead>");
     cells
@@ -294,6 +295,7 @@ const markdown = (md, conf = {}) => {
     return matchResult[0].length;
   }
 
+  // 顺序执行解析函数列表，直到文本终结
   function mark(funcList, str) {
     while (str) {
       let i = 0;

@@ -1,15 +1,11 @@
 {
   "name": "moonprism-markdown",
-  "version": "2.6.1",
+  "version": "2.6.3",
   "description": "a simple markdown parser",
   "main": "dist/markdown.umd.js",
   "module": "dist/markdown.es.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "",
-    "cli": "node test/cli.js"
+    "build": "vite build"
   },
   "repository": {
     "type": "git",

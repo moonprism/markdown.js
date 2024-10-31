@@ -6,7 +6,7 @@ a simple markdown parser. [demo](https://moonprism.github.io/markdown.js/)
 npm i moonprism-markdown
 ```
 
-## Usage
+## Use
 
 ```js
 import markdown from "moonprism-markdown";

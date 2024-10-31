@@ -17,9 +17,6 @@ const markdown = (md, conf = {}) => {
   // 最终解析文本
   let html = "";
   function buildHtml(str) {
-    if (conf.debug) {
-      console.log(str);
-    }
     html += str;
   }
 
@@ -56,28 +53,34 @@ const markdown = (md, conf = {}) => {
         /(``*)\s*(.+?)\s*\1/g,
         (_, _backticks, s) => `<code>${escapeCode(s)}</code>`
       )
-      .replace(/([^\\]|^)!\[([^<>]*?)\]\(([^<>]*?)\)/g, (match, prefix, alt, src) => {
-        if (foresee(alt) || foresee(src)) {
-          return match;
+      .replace(
+        /([^\\]|^)!\[([^<>]*?)\]\(([^<>]*?)\)/g,
+        (match, prefix, alt, src) => {
+          if (foresee(alt) || foresee(src)) {
+            return match;
+          }
+          const cdn =
+            conf.imageCdnUrl && !src.match(/^(?:\/|https?)/)
+              ? conf.imageCdnUrl
+              : "";
+          return `${prefix}<img alt="${alt}" src="${cdn}${src}">`;
         }
-        const cdn =
-          conf.imageCdnUrl && !src.match(/^(?:\/|https?)/)
-            ? conf.imageCdnUrl
-            : "";
-        return `${prefix}<img alt="${alt}" src="${cdn}${src}">`;
-      })
+      )
       .replace(/([^\\]|^)\[(.*?)\]\(([^<>]*?)\)/g, (match, prefix, s, href) => {
         if (foresee(href)) {
           return match;
         }
         return `${prefix}<a${link_attribute} href="${href}">${s}</a>`;
       })
-      .replace(/([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g, (match, prefix, href) => {
-        if (foresee(href)) {
-          return escapeCode(match);
+      .replace(
+        /([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g,
+        (match, prefix, href) => {
+          if (foresee(href)) {
+            return escapeCode(match);
+          }
+          return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
         }
-        return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
-      })
+      )
       .replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>")
       .replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>")
       .replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>")
@@ -120,11 +123,11 @@ const markdown = (md, conf = {}) => {
           } type="checkbox"></input> `
         );
       }
-      if (s.includes("\n")) {
-        // TODO
-        // 下一行的起始空格数为当前li+2以上才递归解析
-        // 使用 return match.length - 剩下字符串长度返回本次解析终点
-        // 但这个项目只是用在个人博客里一个很小的功能上，只要自己的markdown写规范就不会有这类问题
+      const nextLineMatch = s.match(/\n( +)/);
+      if (nextLineMatch) {
+        // 以下一行的起始空格数来对齐后面的行
+        const [, spaces] = nextLineMatch;
+        s = s.replaceAll("\n" + spaces, "\n");
         mark(
           [
             parseHeading,
@@ -156,9 +159,7 @@ const markdown = (md, conf = {}) => {
   }
 
   function parseHeading(str) {
-    const matchResult = str.match(
-      /^(#{1,6})\s+(.*?)(?:\n+|$)/
-    );
+    const matchResult = str.match(/^(#{1,6})\s+(.*?)(?:\n+|$)/);
     if (!matchResult) {
       return 0;
     }
@@ -214,16 +215,12 @@ const markdown = (md, conf = {}) => {
   }
 
   function parseBlockquote(str) {
-    const matchResult = str.match(
-      /^(\s*)(?:>|&gt;)(?:\s|\[(\S+?)\]\s)([\s\S]*?)(?:\n{2,}|$)/
-    );
+    const matchResult = str.match(/^\s*> (.*(?:\n *> *.*)*)(?:\n|$)/);
     if (!matchResult) {
       return 0;
     }
-    const [match, , className, content] = matchResult;
-    buildHtml(
-      `<blockquote${className === undefined ? "" : ` class="${className}"`}>`
-    );
+    const [match, content] = matchResult;
+    buildHtml(`<blockquote>`);
     mark(
       [
         parseHeading,
@@ -233,7 +230,7 @@ const markdown = (md, conf = {}) => {
         parseParagraph,
         skipEmptyLines,
       ],
-      content.replace(/\n\s*(>|&gt;) */g, "\n")
+      content.replace(/\n\s*> */g, "\n")
     );
     buildHtml("</blockquote>");
     return match.length;
@@ -265,11 +262,9 @@ const markdown = (md, conf = {}) => {
     });
 
     buildHtml("<table><thead><tr>");
-    header
-      .split("|")
-      .forEach((v, i) => {
-        buildHtml(`<th align="${aligns[i]}">${parseInline(v.trim())}</th>`);
-      });
+    header.split("|").forEach((v, i) => {
+      buildHtml(`<th align="${aligns[i]}">${parseInline(v.trim())}</th>`);
+    });
     buildHtml("</tr></thead>");
     cells
       .trim()
@@ -295,12 +290,16 @@ const markdown = (md, conf = {}) => {
     return matchResult[0].length;
   }
 
-  // 顺序执行解析函数列表，直到文本终结
+  // 执行解析函数列表，直到文本终结
   function mark(funcList, str) {
+    let i = 0;
     while (str) {
-      let i = 0;
-      funcList.find((func) => {
+      // 顺序解析块级元素，当找到一个与之匹配后 continue
+      funcList.some((func) => {
         i = func(str);
+        if (conf.debug) {
+          console.log(func.name, i, "\n", str);
+        }
         return i !== 0;
       });
       str = str.substring(i);

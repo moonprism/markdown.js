@@ -73,10 +73,10 @@ const markdown = (md, conf = {}) => {
         return `${prefix}<a${link_attribute} href="${href}">${s}</a>`;
       })
       .replace(
-        /([^\\]|^)(?:<|&lt;)(https?\S+?)(?:>|&gt;)/g,
+        /([^\\]|^)<(https?\S+?)>/g,
         (match, prefix, href) => {
           if (foresee(href)) {
-            return escapeCode(match);
+            return `${prefix}&lt;${href}&gt;`;
           }
           return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
         }
@@ -132,7 +132,7 @@ const markdown = (md, conf = {}) => {
           [
             parseHeading,
             parseLists,
-            parseBlockCode,
+            parseCode,
             parseBlockquote,
             parseText,
             skipEmptyLines,
@@ -178,7 +178,7 @@ const markdown = (md, conf = {}) => {
     return match.length;
   }
 
-  function parseBlockCode(str) {
+  function parseCode(str) {
     const matchResult = str.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/);
     if (!matchResult) {
       return 0;
@@ -226,11 +226,11 @@ const markdown = (md, conf = {}) => {
         parseHeading,
         parseLists,
         parseBlockquote,
-        parseBlockCode,
+        parseCode,
         parseParagraph,
         skipEmptyLines,
       ],
-      content.replace(/\n\s*> */g, "\n")
+      content.replace(/\n\s*> ?/g, "\n")
     );
     buildHtml("</blockquote>");
     return match.length;
@@ -297,8 +297,13 @@ const markdown = (md, conf = {}) => {
       // 顺序解析块级元素，当找到一个与之匹配后 continue
       funcList.some((func) => {
         i = func(str);
-        if (conf.debug) {
-          console.log(func.name, i, "\n", str);
+        if (conf.debug && i) {
+          console.log(func.name, i);
+          console.log(
+            `%c${str.substring(0, i)}%c${str.substring(i)}`,
+            "background: #eee",
+            ""
+          );
         }
         return i !== 0;
       });
@@ -311,7 +316,7 @@ const markdown = (md, conf = {}) => {
       parseHeading,
       parseLineBreak,
       parseLists,
-      parseBlockCode,
+      parseCode,
       parseBlockquote,
       parseTable,
       parseParagraph,

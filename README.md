@@ -15,7 +15,7 @@ let html = markdown("# hello world");
 
 ## Case
 
-`````md
+`````
 ### A third-level heading
 > Text that is a quote
 
@@ -25,7 +25,7 @@ A footnote can also have multiple lines[^2].
 
 ~~This was mistaken text~~
 
-*233**All this text is important All bold and italic ***
+*233***All this text is important All bold and italic**
 
 Use `git status` to list all new or modified files that haven't yet been committed.
 
@@ -41,30 +41,8 @@ Look! You can see my backticks.
 ```
 ````
 
-<details><summary>Tables</summary>
-| Left-aligned | Center-aligned | Right-aligned |
-| :---         |     :---:      |          ---: |
-| git status   | git status     | git status    |
-| git diff     | git diff       | git diff      |
-</details>
-
-<details><summary>Lists</summary>
-1. Lists
-  - George Washington
-  * John Adams
-2. Nested Lists
-  10. First list item
-       - First nested list item
-3. Task Lists
-  - [x] #739
-  - [ ] https://github.com/octo-org/octo-repo/issues/740
-</details>
-
-<details><summary>Images</summary>
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://myoctocat.com/assets/images/base-octocat.svg)
-</details>
-
 <details><summary>Alerts</summary>
+
 > [!NOTE]
 > Useful information that users should know, even when skimming content.
 
@@ -79,9 +57,40 @@ Look! You can see my backticks.
 
 > [!CAUTION]
 > Advises about risks or negative outcomes of certain actions.
+
+</details>
+
+<details><summary>Tables</summary>
+
+| Left-aligned | Center-aligned | Right-aligned |
+| :---         |     :---:      |          ---: |
+| git status   | git status     | git status    |
+| git diff     | git diff       | git diff      |
+
+</details>
+
+<details><summary>Lists</summary>
+
+11. Lists
+    - George Washington
+    * John Adams
+12. Nested Lists
+    1. First list item
+       - First nested list item
+13. Task Lists
+    - [x] #739
+    - [ ] https://github.com/octo-org/octo-repo/issues/740
+
+</details>
+
+<details><summary>Images</summary>
+
+![an Octocat smiling and raising a tentacle.](https://myoctocat.com/assets/images/base-octocat.svg)
+
 </details>
 
 <details><summary>Complex</summary>
+
 - A
   >>> D
   >>
@@ -90,11 +99,13 @@ Look! You can see my backticks.
   - F
     ```
     G
+    
+    H
     ```
 - B
-  > - H
   > - I
   >   - JK
 - C
+
 </details>
 `````

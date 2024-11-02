@@ -239,31 +239,21 @@ const markdown = (md, conf = {}) => {
     return match.length;
   }
 
-  function parseParagraph(str) {
-    const matchResult = str.match(/^ *(.+\n*) */);
-    if (!matchResult) {
-      return 0;
-    }
-    const [match, text] = matchResult;
-    if (text.trim() === "") {
-      return 0;
-    }
-    buildHtml(`<p>${parseInline(text)}</p>`);
-    return match.length;
-  }
-
   function parseBlockquote(str) {
-    const matchResult = str.match(/^ *(> *.*(?:\n *> *.*)*)(?:\n|$)/);
+    const matchResult = str.match(/^ *> ?( *(.*)(?:\n *> *.*)*)(?:\n|$)/);
     if (!matchResult) {
       return 0;
     }
-    const [match, text] = matchResult;
-    const alertMatchResult = text.match(/^> *\[\!([A-Z]+)\] *\n/);
+    const [match, text, firstLine] = matchResult;
+    const alertMatchResult = firstLine.match(/^\[\!([A-Z]+)\]$/);
+    let alertLen = 0;
+    // github 的 > [!TIP] 语法
     if (alertMatchResult) {
-      const [_, alertName] = alertMatchResult;
+      const [alertMatch, alertName] = alertMatchResult;
       buildHtml(
         `<div class="admonition alert-${alertName.toLowerCase()}"><p class="admonition-title">${alertName}</p>`
       );
+      alertLen = alertMatch.length;
     } else {
       buildHtml(`<blockquote>`);
     }
@@ -276,9 +266,7 @@ const markdown = (md, conf = {}) => {
         parseParagraph,
         skipEmptyLines,
       ],
-      text
-        .substring(alertMatchResult ? alertMatchResult[0].length : 0)
-        .replace(/(^|\n)\s*> ?/g, "\n")
+      text.substring(alertLen).replace(/\n *> ?/g, "\n")
     );
     if (alertMatchResult) {
       buildHtml("</div>");
@@ -352,8 +340,22 @@ const markdown = (md, conf = {}) => {
     return match.length;
   }
 
+  // parseParaGraph or parseText + skipEmptyLines must match all string
+  function parseParagraph(str) {
+    const matchResult = str.match(/^ *(.+\n*) */);
+    if (!matchResult) {
+      return 0;
+    }
+    const [match, text] = matchResult;
+    if (text.trim() === "") {
+      return 0;
+    }
+    buildHtml(`<p>${parseInline(text)}</p>`);
+    return match.length;
+  }
+
   function skipEmptyLines(str) {
-    const matchResult = str.match(/^\s*\n/);
+    const matchResult = str.match(/^\s*(\n|$)/);
     if (!matchResult) {
       return 0;
     }
@@ -362,21 +364,24 @@ const markdown = (md, conf = {}) => {
 
   // 执行解析函数列表，直到文本终结
   function mark(funcList, str) {
-    let i = 0;
     while (str) {
+      let i = 0;
       // 顺序解析块级元素，当找到一个与之匹配后 continue
       funcList.some((func) => {
         i = func(str);
         if (conf.debug && i) {
           console.log(func.name, i);
           console.log(
-            `%c${str.substring(0, i)}%c${str.substring(i)}`,
-            "background: #eee",
+            `%c${str.substring(0, i)}%c${str.substring(i).substring(0, 300)}`,
+            "background: #ddd",
             ""
           );
         }
         return i !== 0;
       });
+      if (i === 0) {
+        throw new Error("Cannot catch");
+      }
       str = str.substring(i);
     }
   }
@@ -406,7 +411,6 @@ const markdown = (md, conf = {}) => {
   });
   html = html.replace(/\s+<\/p>/g, "</p>");
 
-  // 时间换空间? !== ""
   if (footnoteHtml) {
     html += `<ol>${footnoteHtml}</ol>`;
   }

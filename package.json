@@ -1,6 +1,6 @@
 {
   "name": "moonprism-markdown",
-  "version": "2.6.8",
+  "version": "2.6.9",
   "description": "a simple markdown parser",
   "main": "dist/markdown.umd.js",
   "module": "dist/markdown.es.js",

@@ -72,15 +72,12 @@ const markdown = (md, conf = {}) => {
         }
         return `${prefix}<a${link_attribute} href="${href}">${s}</a>`;
       })
-      .replace(
-        /([^\\]|^)<(https?\S+?)>/g,
-        (match, prefix, href) => {
-          if (foresee(href)) {
-            return `${prefix}&lt;${href}&gt;`;
-          }
-          return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
+      .replace(/([^\\]|^)<(https?\S+?)>/g, (_, prefix, href) => {
+        if (foresee(href)) {
+          return `${prefix}&lt;${href}&gt;`;
         }
-      )
+        return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
+      })
       .replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>")
       .replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>")
       .replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>")
@@ -89,23 +86,18 @@ const markdown = (md, conf = {}) => {
   }
 
   function parseLists(str) {
-    const matchResult = str.match(/^( *)(\*|\-|\d+\.) .+(?:\n.+|\n\n  .+)*/);
+    const matchResult = str.match(
+      /^ *(\*|\-|1\.) .+(?:\n(\* |\- |\d+\. | +).+|\n\n  .+)*(?:\n|$)/
+    );
     if (!matchResult) {
       return 0;
     }
-    const [match, leadingSpace, signChar] = matchResult;
+    const [match, signChar] = matchResult;
     const orderTag = ["*", "-"].includes(signChar) ? "ol" : "ul";
     /**
      * @type {string[]}
      */
-    let lis = [];
-    if (leadingSpace !== "") {
-      lis = match.split(
-        new RegExp(`(?:\n|^)${leadingSpace}(?:\\*|\\-|\\d+\\.) `)
-      );
-    } else {
-      lis = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
-    }
+    let lis = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
     lis.shift();
 
     buildHtml(`<${orderTag}>`);
@@ -153,8 +145,9 @@ const markdown = (md, conf = {}) => {
     if (!matchResult) {
       return 0;
     }
-    const [match, text] = matchResult;
-    buildHtml(parseInline(text));
+    const [match, text, end] = matchResult;
+    // TODO 相邻的text行才加空格
+    buildHtml(`${parseInline(text)}${end === "\n" ? " " : ""}`);
     return match.length;
   }
 
@@ -186,7 +179,7 @@ const markdown = (md, conf = {}) => {
     const [match, , lang, text] = matchResult;
     buildHtml(
       `<pre><code${
-        lang === undefined ? "" : ` class="language-'${lang}"`
+        lang === undefined ? "" : ` class="language-${lang}"`
       }>${escapeCode(text)}</code></pre>`
     );
     return match.length;

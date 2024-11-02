@@ -12,3 +12,89 @@ npm i moonprism-markdown
 import markdown from "moonprism-markdown";
 let html = markdown("# hello world");
 ```
+
+## Case
+
+`````md
+### A third-level heading
+> Text that is a quote
+
+Here is a simple footnote[^1].
+
+A footnote can also have multiple lines[^2].
+
+~~This was mistaken text~~
+
+*233**All this text is important All bold and italic ***
+
+Use `git status` to list all new or modified files that haven't yet been committed.
+
+This site was built using [GitHub Pages](https://pages.github.com/).
+
+[^1]: My reference.
+[^2]: To add line breaks within a footnote, prefix new lines with 2 spaces.
+  This is a second line.
+
+````
+```
+Look! You can see my backticks.
+```
+````
+
+<details><summary>Tables</summary>
+| Left-aligned | Center-aligned | Right-aligned |
+| :---         |     :---:      |          ---: |
+| git status   | git status     | git status    |
+| git diff     | git diff       | git diff      |
+</details>
+
+<details><summary>Lists</summary>
+1. Lists
+  - George Washington
+  * John Adams
+2. Nested Lists
+  10. First list item
+       - First nested list item
+3. Task Lists
+  - [x] #739
+  - [ ] https://github.com/octo-org/octo-repo/issues/740
+</details>
+
+<details><summary>Images</summary>
+![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://myoctocat.com/assets/images/base-octocat.svg)
+</details>
+
+<details><summary>Alerts</summary>
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+</details>
+
+<details><summary>Complex</summary>
+- A
+  >>> D
+  >>
+  >
+  E
+  - F
+    ```
+    G
+    ```
+- B
+  > - H
+  > - I
+  >   - JK
+- C
+</details>
+`````

@@ -215,12 +215,12 @@ const markdown = (md, conf = {}) => {
       return 0;
     }
     const [match, tag, text] = matchResult;
-    console.log(tag);
     if (tag === "details") {
       buildHtml("<details>");
       mark(
         [
           parseHeading,
+          parseFootnote,
           parseLineBreak,
           parseLists,
           parseCode,
@@ -245,17 +245,20 @@ const markdown = (md, conf = {}) => {
       return 0;
     }
     const [match, text] = matchResult;
+    if (text.trim() === "") {
+      return 0;
+    }
     buildHtml(`<p>${parseInline(text)}</p>`);
     return match.length;
   }
 
   function parseBlockquote(str) {
-    const matchResult = str.match(/^ *>( *.*(?:\n *> *.*)*)(?:\n|$)/);
+    const matchResult = str.match(/^ *(> *.*(?:\n *> *.*)*)(?:\n|$)/);
     if (!matchResult) {
       return 0;
     }
     const [match, text] = matchResult;
-    const alertMatchResult = text.match(/^ *\[\!([A-Z]+)\] *\n/);
+    const alertMatchResult = text.match(/^> *\[\!([A-Z]+)\] *\n/);
     if (alertMatchResult) {
       const [_, alertName] = alertMatchResult;
       buildHtml(

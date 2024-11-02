@@ -12,24 +12,21 @@
  * @returns
  */
 const markdown = (md, conf = {}) => {
-  md = md.replace(/(\r\n|\r)/g, "\n").replace(/\t/g, "  ");
-
-  // 最终解析文本
-  let html = "";
+  let html = ""; // 最终解析文本
   function buildHtml(str) {
     html += str;
   }
 
-  const link_attribute = conf.isOpenInNewTab
+  const link_attrs = conf.isOpenInNewTab
     ? ' target="_blank" rel="noopener"'
     : "";
 
   // 转义code中的特殊字符
   function escapeCode(str) {
     return str
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
   }
 
   // 查询关键字的标记符号(带有以下符号的某些行内元素不会被解析
@@ -43,68 +40,90 @@ const markdown = (md, conf = {}) => {
     return foreseeSigns.some((sign) => str.includes(sign));
   }
 
+  const inlineSlashChars = ["\\", "!", "[", "*", "~", "#", "`", "^"];
+  const inlineSlashMark = "🌻-✦";
+
   // 解析所有行内元素
   function parseInline(str) {
-    return str
-      .replace(/\\\\/g, "🌻-S")
-      .replace(/\\</g, "&lt;")
-      .replace(/\\>/g, "&gt;")
+    inlineSlashChars.forEach((char) => {
+      str = str.replaceAll(
+        `\\${char}`,
+        `${inlineSlashMark}${char.charCodeAt(0)}`
+      );
+    });
+    str = str
+      .replaceAll("\\<", "&lt;")
+      .replaceAll("\\>", "&gt;")
       .replace(
         /(``*)\s*(.+?)\s*\1/g,
         (_, _backticks, s) => `<code>${escapeCode(s)}</code>`
       )
-      .replace(
-        /([^\\]|^)!\[([^<>]*?)\]\(([^<>]*?)\)/g,
-        (match, prefix, alt, src) => {
-          if (foresee(alt) || foresee(src)) {
-            return match;
-          }
-          const cdn =
-            conf.imageCdnUrl && !src.match(/^(?:\/|https?)/)
-              ? conf.imageCdnUrl
-              : "";
-          return `${prefix}<img alt="${alt}" src="${cdn}${src}">`;
+      .replace(/!\[([^<>]*?)\]\(([^<>]*?)\)/g, (match, alt, src) => {
+        if (foresee(alt) || foresee(src)) {
+          return match;
         }
-      )
-      .replace(/([^\\]|^)\[(.*?)\]\(([^<>]*?)\)/g, (match, prefix, s, href) => {
+        const cdn =
+          conf.imageCdnUrl && !src.match(/^(?:\/|https?)/)
+            ? conf.imageCdnUrl
+            : "";
+        return `<img alt="${alt}" src="${cdn}${src}">`;
+      })
+      .replace(/\[(.*?)\]\(([^<>]*?)\)/g, (match, s, href) => {
         if (foresee(href)) {
           return match;
         }
-        return `${prefix}<a${link_attribute} href="${href}">${s}</a>`;
+        return `<a${link_attrs} href="${href}">${s}</a>`;
       })
-      .replace(/([^\\]|^)<(https?\S+?)>/g, (_, prefix, href) => {
+      .replace(/<(https?\S+?)>/g, (_, href) => {
         if (foresee(href)) {
-          return `${prefix}&lt;${href}&gt;`;
+          return `&lt;${href}&gt;`;
         }
-        return `${prefix}<a${link_attribute} href="${href}">${href}</a>`;
+        return `<a${link_attrs} href="${href}">${href}</a>`;
       })
-      .replace(/([^\\]|^)\*\*(.+?)\*\*/g, "$1<b>$2</b>")
-      .replace(/([^\\]|^)\*(.+?)\*/g, "$1<i>$2</i>")
-      .replace(/([^\\]|^)~~(.+?)~~/g, "$1<s>$2</s>")
-      .replace(/\\([!\[\*\~``#])/g, "$1")
-      .replace(/\🌻-S/g, "\\");
+      .replace(/\[\^(\d+)\]/g, '<sup><a href="#fn-$1">$1</a></sup>')
+      .replace(/(\*{2})+?([^\*].*?)\1/g, "<strong>$2</strong>")
+      .replace(/(\*)(.+?)\1/g, "<em>$2</em>")
+      .replace(/(~~)(.+?)\1/g, "<del>$2</del>");
+
+    inlineSlashChars.forEach((char) => {
+      str = str.replaceAll(`${inlineSlashMark}${char.charCodeAt(0)}`, char);
+    });
+    return str;
   }
 
   function parseLists(str) {
     const matchResult = str.match(
-      /^ *(\*|\-|1\.) .+(?:\n(\* |\- |\d+\. | +).+|\n\n  .+)*(?:\n|$)/
+      // 不允许跨多行匹配，需要空白字符前缀
+      /^( *)(\*|\-|\d+\.) .+(?:\n(\*|\-|\d+\.| ).+)*(?:\n|$)/
     );
     if (!matchResult) {
       return 0;
     }
-    const [match, signChar] = matchResult;
-    const orderTag = ["*", "-"].includes(signChar) ? "ol" : "ul";
+    const [match, leadingSpace, signChar] = matchResult;
+    const isUnOrder = ["*", "-"].includes(signChar);
+
     /**
      * @type {string[]}
      */
-    let lis = match.split(/(?:^|\n)(?:\*|\-|\d+\.) /g);
+    let lis = match.split(/(?:^|\n) *(?:\*|\-|\d+\.) /g);
+    lis = match.split(
+      new RegExp(
+        `(?:\n|^)${leadingSpace ? leadingSpace : ""}(?:\\*|\\-|\\d+\\.) `
+      )
+    );
     lis.shift();
 
-    buildHtml(`<${orderTag}>`);
-
+    buildHtml(
+      `<${
+        isUnOrder
+          ? "ul"
+          : `ol start="${signChar.substring(0, signChar.length - 1)}"`
+      }>`
+    );
     lis.forEach((s) => {
       buildHtml("<li>");
       s = s.trim();
+
       const taskMatchResult = s.match(/^\[(\s|x)\] /);
       if (taskMatchResult) {
         s = s.substring(4);
@@ -115,6 +134,7 @@ const markdown = (md, conf = {}) => {
           } type="checkbox"></input> `
         );
       }
+
       const nextLineMatch = s.match(/\n( +)/);
       if (nextLineMatch) {
         // 以下一行的起始空格数来对齐后面的行
@@ -136,12 +156,12 @@ const markdown = (md, conf = {}) => {
       }
       buildHtml("</li>");
     });
-    buildHtml(`</${orderTag}>`);
+    buildHtml(`</${isUnOrder ? "ul" : "ol"}>`);
     return match.length;
   }
 
   function parseText(str) {
-    const matchResult = str.match(/^\s*(.+)(\n|$)/);
+    const matchResult = str.match(/^ *(.+)(\n|$)/);
     if (!matchResult) {
       return 0;
     }
@@ -152,7 +172,7 @@ const markdown = (md, conf = {}) => {
   }
 
   function parseHeading(str) {
-    const matchResult = str.match(/^(#{1,6})\s+(.*?)(?:\n+|$)/);
+    const matchResult = str.match(/^(#{1,6}) +(.*?)(?:\n|$)/);
     if (!matchResult) {
       return 0;
     }
@@ -162,17 +182,19 @@ const markdown = (md, conf = {}) => {
   }
 
   function parseLineBreak(str) {
-    const matchResult = str.match(/^([*-]){3,}(?:\n+|$)/);
+    const matchResult = str.match(/^([*-] ?){3,}(?:\n+|$)/);
     if (!matchResult) {
       return 0;
     }
     const [match, sign] = matchResult;
-    buildHtml(`<${sign === "*" ? "br" : "hr"} />`);
+    buildHtml("<hr>");
     return match.length;
   }
 
   function parseCode(str) {
-    const matchResult = str.match(/^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n\1/);
+    const matchResult = str.match(
+      /^ *(``{2,})(?:(\S+)|)\n([\s\S]*?)\n *\1(?:\n|$)/
+    );
     if (!matchResult) {
       return 0;
     }
@@ -187,33 +209,61 @@ const markdown = (md, conf = {}) => {
 
   function parseHTML(str) {
     const matchResult = str.match(
-      /^<([a-zA-Z\-]+)[\s|>][\s\S]*?(?:<\/\1>\s*|\n{2,}|$)/
+      /^<([a-zA-Z\-]+).*?>([\s\S]*?)<\/\1>(?:\n|$)/
     );
     if (!matchResult) {
       return 0;
     }
-    const [match, tag] = matchResult;
-    buildHtml(match);
+    const [match, tag, text] = matchResult;
+    console.log(tag);
+    if (tag === "details") {
+      buildHtml("<details>");
+      mark(
+        [
+          parseHeading,
+          parseLineBreak,
+          parseLists,
+          parseCode,
+          parseBlockquote,
+          parseTable,
+          parseHTML,
+          parseParagraph,
+          skipEmptyLines,
+        ],
+        text
+      );
+      buildHtml("</details>");
+    } else {
+      buildHtml(match);
+    }
     return match.length;
   }
 
   function parseParagraph(str) {
-    const matchResult = str.match(/^.+\n*/);
+    const matchResult = str.match(/^ *(.+\n*) */);
     if (!matchResult) {
       return 0;
     }
-    const [match] = matchResult;
-    buildHtml(`<p>${parseInline(match)}</p>`);
+    const [match, text] = matchResult;
+    buildHtml(`<p>${parseInline(text)}</p>`);
     return match.length;
   }
 
   function parseBlockquote(str) {
-    const matchResult = str.match(/^\s*> (.*(?:\n *> *.*)*)(?:\n|$)/);
+    const matchResult = str.match(/^ *>( *.*(?:\n *> *.*)*)(?:\n|$)/);
     if (!matchResult) {
       return 0;
     }
-    const [match, content] = matchResult;
-    buildHtml(`<blockquote>`);
+    const [match, text] = matchResult;
+    const alertMatchResult = text.match(/^ *\[\!([A-Z]+)\] *\n/);
+    if (alertMatchResult) {
+      const [_, alertName] = alertMatchResult;
+      buildHtml(
+        `<div class="admonition alert-${alertName.toLowerCase()}"><p class="admonition-title">${alertName}</p>`
+      );
+    } else {
+      buildHtml(`<blockquote>`);
+    }
     mark(
       [
         parseHeading,
@@ -223,9 +273,15 @@ const markdown = (md, conf = {}) => {
         parseParagraph,
         skipEmptyLines,
       ],
-      content.replace(/\n\s*> ?/g, "\n")
+      text
+        .substring(alertMatchResult ? alertMatchResult[0].length : 0)
+        .replace(/(^|\n)\s*> ?/g, "\n")
     );
-    buildHtml("</blockquote>");
+    if (alertMatchResult) {
+      buildHtml("</div>");
+    } else {
+      buildHtml("</blockquote>");
+    }
     return match.length;
   }
 
@@ -275,6 +331,24 @@ const markdown = (md, conf = {}) => {
     return match.length;
   }
 
+  let footnoteHtml = "";
+  function parseFootnote(str) {
+    const matchResult = str.match(
+      /^ *\[\^(\d+)\]:([\s\S]+?)(?:\n{2}|\n(\[\^\d+\]\:)|$)/
+    );
+    if (!matchResult) {
+      return 0;
+    }
+    const [match, fnId, text, nextFootNote] = matchResult;
+    footnoteHtml += `<li id="fn-${fnId}"><p>${parseInline(
+      text
+    )}<a href="#fn-${fnId}">↩︎</a></p></li>`;
+    if (nextFootNote) {
+      return match.length - nextFootNote.length;
+    }
+    return match.length;
+  }
+
   function skipEmptyLines(str) {
     const matchResult = str.match(/^\s*\n/);
     if (!matchResult) {
@@ -307,13 +381,14 @@ const markdown = (md, conf = {}) => {
   mark(
     [
       parseHeading,
+      parseFootnote,
       parseLineBreak,
       parseLists,
       parseCode,
       parseBlockquote,
       parseTable,
-      parseParagraph,
       parseHTML,
+      parseParagraph,
       skipEmptyLines,
     ],
     md
@@ -327,6 +402,11 @@ const markdown = (md, conf = {}) => {
     return "</p><p>";
   });
   html = html.replace(/\s+<\/p>/g, "</p>");
+
+  // 时间换空间? !== ""
+  if (footnoteHtml) {
+    html += `<ol>${footnoteHtml}</ol>`;
+  }
 
   return html;
 };

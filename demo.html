@@ -11,7 +11,7 @@
       const App = () => {
         const [md, setMd] = createSignal("");
         const htmlMemo = createMemo(() => markdown(md(), {debug: true}));
-        setMd("# hello world\n");
+        setMd("# Hello World\n");
 
         return html` <div class="flex flex-col items-center">
           <div class="w-full max-w-[750px] space-y-4 m-10">
@@ -32,5 +32,5 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.7.0/github-markdown.min.css"
   />
-  <style>ol{list-style:disc}ul{list-style: decimal}</style>
+  <style>ol{list-style:decimal}ul{list-style:disc}</style>
 </html>

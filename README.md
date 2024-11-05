@@ -9,8 +9,8 @@ npm i moonprism-markdown
 ## Use
 
 ```js
-import markdown from "moonprism-markdown";
-let html = markdown("# hello world");
+import markdown from 'moonprism-markdown';
+let html = markdown('# hello world');
 ```
 
 ## Case
@@ -18,6 +18,8 @@ let html = markdown("# hello world");
 `````
 ### A third-level heading
 > Text that is a quote
+>
+> <https://pages.github.com/>
 
 Here is a simple footnote[^1].
 

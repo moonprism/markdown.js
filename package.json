@@ -1,11 +1,12 @@
 {
   "name": "moonprism-markdown",
-  "version": "2.6.9",
+  "version": "2.6.10",
   "description": "a simple markdown parser",
   "main": "dist/markdown.umd.js",
   "module": "dist/markdown.es.js",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "format": "prettier --write markdown.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/moonprism/markdown.js#readme",
   "devDependencies": {
+    "prettier": "^3.3.3",
     "vite": "^5.4.9"
   }
 }
